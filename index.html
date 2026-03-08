@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="shere">
+<meta name="theme-color" content="#f0f2f8" media="(prefers-color-scheme: light)" id="themeColorLight">
+<meta name="theme-color" content="#0d1021" media="(prefers-color-scheme: dark)" id="themeColorDark">
+<meta name="theme-color" content="#f0f2f8" id="themeColor">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>shere</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- LAADSCHERM -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div style="font-family:'Nunito',sans-serif;font-size:26px;font-weight:900;color:var(--text);letter-spacing:-.5px">shere</div>
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Verbinden…</div>
+</div>
+
+<!-- FIREBASE SETUP -->
+<div id="setupScreen" class="hidden">
+  <div class="setup-logo"><span>shere</span></div>
+  <div class="setup-tagline">Eenmalige Firebase-koppeling — circa 5 minuten</div>
+  <div class="setup-card">
+    <div class="setup-card-title">🔥 Verbind je Firebase-project</div>
+    <div class="setup-card-sub">Firebase is een gratis Google-dienst. Jouw familiedata staat in jouw eigen account — niemand anders heeft toegang.</div>
+    <div class="setup-steps">
+      <div class="setup-step"><div class="step-num">1</div><div class="step-text">Ga naar <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> en maak een nieuw project aan (bijv. <em>shere</em>).</div></div>
+      <div class="setup-step"><div class="step-num">2</div><div class="step-text">Ga naar <strong>Build → Firestore Database</strong> → Maak database → kies <strong>Testmodus</strong> → kies een locatie → Gereed.</div></div>
+      <div class="setup-step"><div class="step-num">3</div><div class="step-text">Klik op ⚙️ → <strong>Projectinstellingen</strong> → scroll naar "Jouw apps" → klik <strong>&lt;/&gt;</strong> → geef naam → App registreren.</div></div>
+      <div class="setup-step"><div class="step-num">4</div><div class="step-text">Kopieer de waarden uit het <code>firebaseConfig</code> blok en plak ze hieronder.</div></div>
+    </div>
+    <input class="setup-input" id="cfg_apiKey" placeholder="apiKey" autocomplete="off">
+    <input class="setup-input" id="cfg_authDomain" placeholder="authDomain  (bijv. mijn-project.firebaseapp.com)" autocomplete="off" oninput="autofillFromAuthDomain()">
+    <input class="setup-input" id="cfg_projectId" placeholder="projectId — wordt automatisch ingevuld" autocomplete="off" readonly style="opacity:.5;cursor:not-allowed">
+    <input class="setup-input" id="cfg_storageBucket" placeholder="storageBucket — wordt automatisch ingevuld" autocomplete="off" readonly style="opacity:.5;cursor:not-allowed">
+    <input class="setup-input" id="cfg_messagingSenderId" placeholder="messagingSenderId" autocomplete="off">
+    <input class="setup-input" id="cfg_appId" placeholder="appId" autocomplete="off">
+    <button class="setup-btn" onclick="saveFirebaseConfig()">Opslaan &amp; Verbinden →</button>
+  </div>
+  <div class="setup-note">💡 Deel dezelfde config met elk familielid — eenmalig invoeren per telefoon. Daarna synchroniseert alles direct.</div>
+</div>
+
+<!-- HOOFD-APP -->
+<div id="app">
+
+  <!-- ITEMS -->
+  <div class="view active" id="view-tools">
+    <div class="app-header">
+      <div class="header-top">
+        <div class="app-logo"><span>shere</span></div>
+        <div class="header-actions">
+          <div class="sync-badge" id="syncBadge" style="display:none">
+            <span class="sync-dot yellow" id="syncDot"></span>
+            <span id="syncText">Verbinden…</span>
+          </div>
+          <div class="icon-btn" id="darkToggleBtn" onclick="toggleDarkMode()">🌙</div>
+        </div>
+      </div>
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Zoek een item…" id="searchInput"
+               oninput="onSearchInput()" autocomplete="off" autocorrect="off"
+               autocapitalize="off" spellcheck="false">
+      </div>
+    </div>
+    <div class="categories-scroll" id="categoryChips"></div>
+    <div class="tool-count-bar" id="toolCountBar"></div>
+    <div class="tools-container" id="toolsList"></div>
+  </div>
+
+  <!-- FAMILIE -->
+  <div class="view" id="view-members">
+    <div class="app-header">
+      <div class="header-top">
+        <div class="app-logo">Familie</div>
+        <div class="icon-btn" onclick="openAddMemberSheet()">➕</div>
+      </div>
+    </div>
+    <div class="tools-container" id="membersList"></div>
+  </div>
+
+  <!-- LOGBOEK -->
+  <div class="view" id="view-history">
+    <div class="app-header"><div class="header-top"><div class="app-logo">Logboek</div></div></div>
+    <div class="tools-container" id="historyList"></div>
+  </div>
+
+  <!-- INSTELLINGEN -->
+  <div class="view" id="view-settings">
+    <div class="app-header"><div class="header-top"><div class="app-logo">Instellingen</div></div></div>
+    <div class="tools-container" id="settingsList"></div>
+  </div>
+
+  <!-- NAVIGATIE -->
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="switchView('tools',this)">
+      <div class="nav-icon">🔧</div><div class="nav-label">Items</div>
+    </div>
+    <div class="nav-item" onclick="switchView('members',this)">
+      <div class="nav-icon">👥</div><div class="nav-label">Familie</div>
+    </div>
+    <div class="fab" onclick="openAddToolSheet()">＋</div>
+    <div class="nav-item" onclick="switchView('history',this)">
+      <div class="nav-icon">📋</div><div class="nav-label">Logboek</div>
+    </div>
+    <div class="nav-item" onclick="switchView('settings',this)">
+      <div class="nav-icon">⚙️</div><div class="nav-label">Instellingen</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeAllSheets()"></div>
+<div class="toast" id="toast"></div>
+
+<!-- SHEET: ITEM TOEVOEGEN/WIJZIGEN -->
+<div class="sheet" id="sheetTool">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeAllSheets()">✕</button>
+  <div class="sheet-header"><div class="sheet-title" id="sheetToolTitle">Item toevoegen</div></div>
+  <div class="sheet-body">
+
+    <!-- Foto: twee knoppen voor camera en galerij -->
+    <div class="form-group">
+      <label class="form-label">Foto</label>
+      <div class="photo-upload" id="toolPhotoUploadArea">
+        <div class="photo-upload-icon">📸</div>
+        <div class="photo-upload-text">Kies een foto</div>
+        <img id="photoPreview" style="display:none">
+      </div>
+      <div class="photo-btns">
+        <button class="photo-btn" onclick="document.getElementById('photoInput').click()">📷 Camera</button>
+        <button class="photo-btn" onclick="document.getElementById('photoInputGallery').click()">🖼️ Galerij</button>
+      </div>
+      <!-- Camera: capture=environment opent direct de camera -->
+      <input type="file" id="photoInput" accept="image/*" capture="environment"
+             onchange="handlePhotoCamera(event)">
+      <!-- Galerij: geen capture-attribuut = mediakiezer -->
+      <input type="file" id="photoInputGallery" accept="image/*"
+             onchange="handlePhotoGallery(event)">
+      <button class="btn btn-ghost" id="removeToolPhotoBtn"
+              style="display:none;margin-top:7px;font-size:13px"
+              onclick="removeToolPhoto()">🗑️ Foto verwijderen</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Naam</label>
+      <input class="form-input" id="toolNameInput" placeholder="bijv. Schroevendraaier">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categorie</label>
+      <select class="form-select" id="toolCatInput"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Emoji (als er geen foto is)</label>
+      <div class="tag-list" id="emojiPicker"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notities</label>
+      <textarea class="form-textarea" id="toolNotesInput" placeholder="Merk, model, bijzonderheden…"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Wie heeft dit item nu? <span style="color:var(--red)">*</span></label>
+      <div class="member-grid" id="toolHolderPicker"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveTool()">Opslaan</button>
+    <div style="height:6px"></div>
+  </div>
+</div>
+
+<!-- SHEET: ITEM DETAIL -->
+<div class="sheet" id="sheetDetail">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeAllSheets()">✕</button>
+  <div class="sheet-body" style="padding-top:8px">
+    <div class="detail-hero" id="detailHero"></div>
+    <div class="detail-content">
+      <div class="detail-name" id="detailName"></div>
+      <div class="detail-cat-badge" id="detailCat"></div>
+      <div class="detail-notes" id="detailNotes"></div>
+      <div class="detail-actions">
+        <button class="detail-action-btn" onclick="editCurrentTool()">✏️ Wijzigen</button>
+        <button class="detail-action-btn danger" onclick="deleteCurrentTool()">🗑️ Verwijderen</button>
+      </div>
+      <div class="section-box">
+        <div class="section-box-title">📍 Wie heeft dit item nu?</div>
+        <div class="member-grid" id="detailMemberGrid"></div>
+      </div>
+      <div class="section-box">
+        <div class="section-box-title">📋 Geschiedenis</div>
+        <div class="history-list" id="detailHistory"></div>
+      </div>
+      <div style="display:flex;gap:7px;margin-top:4px">
+        <button class="btn btn-ghost" style="flex:1" onclick="closeAllSheets()">Sluiten</button>
+        <button class="btn btn-primary" style="flex:1" onclick="confirmCheckout()">Bevestigen</button>
+      </div>
+      <div style="height:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SHEET: LID TOEVOEGEN/WIJZIGEN -->
+<div class="sheet" id="sheetMember">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeAllSheets()">✕</button>
+  <div class="sheet-header"><div class="sheet-title" id="sheetMemberTitle">Lid toevoegen</div></div>
+  <div class="sheet-body">
+    <div class="form-group" style="text-align:center">
+      <label class="form-label">Profielfoto</label>
+      <div class="avatar-upload" onclick="document.getElementById('memberPhotoInput').click()">
+        <span class="avatar-upload-icon" id="avatarUploadIcon">👤</span>
+        <img id="memberPhotoPreview" style="display:none">
+      </div>
+      <div class="photo-btns" style="max-width:240px;margin:0 auto">
+        <button class="photo-btn" onclick="document.getElementById('memberPhotoInput').click()">📷 Camera</button>
+        <button class="photo-btn" onclick="document.getElementById('memberPhotoInputGallery').click()">🖼️ Galerij</button>
+      </div>
+      <!-- Camera -->
+      <input type="file" id="memberPhotoInput" accept="image/*" capture="user"
+             onchange="handleMemberPhotoCamera(event)">
+      <!-- Galerij -->
+      <input type="file" id="memberPhotoInputGallery" accept="image/*"
+             onchange="handleMemberPhotoGallery(event)">
+      <button class="btn btn-ghost" id="removeMemberPhotoBtn"
+              style="display:none;margin-top:8px;font-size:13px"
+              onclick="removeMemberPhoto()">🗑️ Foto verwijderen</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Naam</label>
+      <input class="form-input" id="memberNameInput" placeholder="bijv. Hugo">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Kleur</label>
+      <div class="tag-list" id="colorPicker"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveMember()">Opslaan</button>
+    <button class="btn btn-danger" id="deleteMemberBtn" style="display:none" onclick="deleteMember()">Lid verwijderen</button>
+    <div style="height:6px"></div>
+  </div>
+</div>
+
+<!-- SHEET: CATEGORIE TOEVOEGEN/WIJZIGEN -->
+<div class="sheet" id="sheetCategory">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeAllSheets()">✕</button>
+  <div class="sheet-header"><div class="sheet-title" id="sheetCatTitle">Categorie toevoegen</div></div>
+  <div class="sheet-body">
+    <div class="form-group">
+      <label class="form-label">Naam</label>
+      <input class="form-input" id="catNameInput" placeholder="bijv. Kleding">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Emoji</label>
+      <div class="tag-list" id="catEmojiPicker"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveCategory()">Opslaan</button>
+    <div style="height:6px"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<!-- CROP MODAL -->
+<div id="cropModal">
+  <div class="crop-card">
+    <div class="crop-title" id="cropTitle">Foto bijsnijden</div>
+    <div class="crop-viewport" id="cropViewport">
+      <img id="cropImg" src="" draggable="false">
+    </div>
+    <div class="crop-hint">Versleep om bij te stellen · Knijp om in/uit te zoomen</div>
+    <div class="crop-btns">
+      <button class="btn btn-ghost" onclick="cancelCrop()">Annuleren</button>
+      <button class="btn btn-primary" onclick="confirmCrop()">Gebruiken</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
