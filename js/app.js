@@ -4,22 +4,39 @@ import {
   onSnapshot, addDoc, query, orderBy, limit, getDocs, writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-// ── CONSTANTEN ────────────────────────────────────────────
-const CFG_KEY    = 'shere_fb_cfg_v1';
-const DARK_KEY   = 'shere_dark';
-const EMOJIS     = ['🔧','🔩','🪚','⚙️','🔨','🪛','⚡','🌿','🍴','✂️','🪣','🧰','💡','🔑','🏗️','🧲','📐','🪜','🌊','🪴','🔌'];
-const COLORS     = ['#3d6af3','#e05c2a','#1e9e60','#9b59b6','#d93025','#0097a7','#f39c12','#e91e63','#607d8b','#795548'];
-const CAT_EMOJIS = ['📦','⚡','🌱','🏗️','🔧','🚗','🧹','💧','🔥','🛠️','🪟','🧰','🔌','🌡️','⛏️'];
+// CONSTANTEN
+const CFG_KEY  = 'shere_fb_cfg_v1';
+const DARK_KEY = 'shere_dark';
+const COLORS   = ['#3d6af3','#e05c2a','#1e9e60','#9b59b6','#d93025','#0097a7','#f39c12','#e91e63','#607d8b','#795548'];
 
-// ── STATE ─────────────────────────────────────────────────
+// Snelle startset voor items en categorieen (bovenaan picker getoond)
+const QUICK_EMOJIS     = ['📦','🔧','🔩','🪚','⚙️','🔨','🪛','⚡','🌿','🍴','✂️','🪣','🧰','💡','🔑','🧲','📐','🪜','🔌','🚗'];
+const QUICK_CAT_EMOJIS = ['📦','⚡','🌱','🏗️','🔧','🚗','🧹','💧','🔥','🛠️','🪟','🧰','🔌','🌡️','⛏️'];
+
+// Volledige emoji-set per categorie (WhatsApp-stijl)
+const EMOJI_CATS = [
+  { icon:'⭐', name:'Snel',      emojis: QUICK_EMOJIS },
+  { icon:'😀', name:'Smileys',   emojis:['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','😉','😌','😍','🥰','😘','😋','😛','😝','😜','🤪','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','😈','👿','👻','💀','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾'] },
+  { icon:'👋', name:'Mensen',    emojis:['👋','🤚','✋','🖖','👌','✌️','🤞','👍','👎','✊','👊','👏','🙌','🤝','🙏','💪','👀','👅','👄','👶','🧒','👦','👧','🧑','👨','👩','🧓','👴','👵','🎅','🤶','👮','💂','👷','👸','🤴','🧙','🦸','🦹','💏','💑','👪'] },
+  { icon:'🐶', name:'Dieren',    emojis:['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐴','🦄','🐝','🦋','🐛','🐌','🐞','🐜','🦟','🕷️','🦂','🐢','🐍','🦎','🐙','🦑','🦐','🦀','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🐘','🦛','🐪','🦒','🐃','🐄','🐎','🐖','🐑','🐐','🐕','🐈','🐓','🦃','🦚','🦜','🐇','🦝','🦨','🦥','🐿️','🦔','🌿','🌺','🌸','🌼','🌻','🌹','🍀','🌱','🌲','🌳','🌴','🌵','🍃','🍂','🍁','🍄','🌾','💐','🌷'] },
+  { icon:'🍕', name:'Eten',      emojis:['🍕','🍔','🍟','🌭','🍿','🥓','🥚','🍳','🥞','🧇','🍞','🥐','🥖','🧀','🥗','🥙','🥪','🌮','🌯','🥫','🍱','🍙','🍚','🍛','🍜','🍝','🍢','🍣','🍤','🍥','🍡','🥟','🥡','🍦','🍧','🍨','🍩','🍪','🎂','🍰','🧁','🍫','🍬','🍭','🍮','🍯','🍷','🍸','🍹','🧃','🥤','🧋','☕','🍵','🍺','🍻','🥂','🍾','🍽️','🥄','🍴'] },
+  { icon:'🏠', name:'Huis',      emojis:['🏠','🏡','🏢','🏥','🏦','🏨','🏪','🏫','🏬','🏭','🏯','🏰','🗼','🌋','🏕️','🏖️','🏜️','🏝️','🏟️','🏛️','🏗️','🪑','🛋️','🛏️','🚪','🪞','🪟','🧴','🧹','🧺','🧻','🪣','🧼','🧽','🧯','🛒','🚿','🛁','🪠','🔦','💡','🕯️','🛠️','🔧','🔨','⚒️','🪓','⛏️','🪚','🔩','🪛','🔗','🧰','🗑️','🪤','🧲','🔑','🗝️','🔒','🔓','📦','📫','✏️','📝','📖','📚','📊','📈','📉','📁','📂'] },
+  { icon:'🚗', name:'Vervoer',   emojis:['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🚚','🚛','🚜','🛻','🚲','🛵','🏍️','🚨','🚃','🚋','🚞','🚝','🚄','🚅','🚇','🚉','✈️','🛫','🛬','🛩️','💺','🚁','🪂','🛸','🚀','🛶','⛵','🚤','🛥️','🚢','⚓','🪝','⛽','🚧','🚦','🚥','🗺️','🧭','🏁','🚩'] },
+  { icon:'⚽', name:'Sport',     emojis:['⚽','🏀','🏈','⚾','🥎','🏐','🏉','🎾','🥏','🎳','🏏','🏑','🏒','🥍','🏓','🏸','🥊','🥋','🎽','⛳','🎿','🛷','🥌','🏆','🥇','🥈','🥉','🏅','🎖️','🏋️','🤸','🏄','🏊','🚣','🚵','🚴','🎭','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🎷','🎺','🎸','🎻','🎲','♟️','🎯','🎱','🎮','🕹️','🎰'] },
+  { icon:'💡', name:'Objecten',  emojis:['💡','🔋','🔌','📱','💻','🖥️','🖨️','⌨️','🖱️','📷','📸','📹','🎥','📞','☎️','📺','📻','🧭','⏱️','⏲️','⏰','🕰️','⌚','📡','🔭','🔬','🩺','💊','🩻','🩹','🧬','🧪','🧲','💰','💵','💸','💳','🪙','📧','📦','✂️','📌','📍','🔖','🏷️','🔑','🗝️','🔒','🔓','🧳','☂️','💼','👜','👝','🎒','🧵','🧶','🪡','🧷'] },
+  { icon:'🔢', name:'Symbolen',  emojis:['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','✨','🌟','⭐','🌈','🔥','💫','💥','🎉','🎊','🎈','🎀','🎁','🏮','🔮','🧿','🪬','🧸','🪆','🪅','💤','🔔','🔕','🎵','🎶','🎼','🔊','📢','📣','🔉','🔈','🔇','📯','💢','💬','💭','💯','✅','❌','❎','🟢','🔴','🔵','🟡','🟠','🟣','⚫','⚪','🟤','🔶','🔷','🔸','🔹','🔺','🔻','💠','🔘','🔲','🔳'] },
+];
+
+// STATE
 let db=null, DB={tools:[],members:[],categories:[],history:[]};
-let _syncColor='yellow', _syncLabel='Verbinden…';
+let _syncColor='yellow', _syncLabel='Verbinden...';
 let selectedCategory='all', editingToolId=null, editingMemberId=null, editingCatId=null;
 let detailToolId=null, detailSelMember=null;
 let photoData=null, memberPhotoData=null;
-let selectedEmoji='🔧', selectedColor=COLORS[0], selectedCatEmoji='📦', toolHolderSel=null;
+let selectedEmoji='📦', selectedColor=COLORS[0], selectedCatEmoji='📦', toolHolderSel=null;
+let _emojiTarget='tool', _emojiCatIdx=0;
 
-// ── DARK MODE ─────────────────────────────────────────────
+// DARK MODE
 function applyDark(on) {
   document.body.classList.toggle('dark-mode',on);
   document.getElementById('darkToggleBtn').textContent=on?'☀️':'🌙';
@@ -28,13 +45,10 @@ function applyDark(on) {
 window.toggleDarkMode=function(){const on=!document.body.classList.contains('dark-mode');localStorage.setItem(DARK_KEY,on?'1':'0');applyDark(on);};
 applyDark(localStorage.getItem(DARK_KEY)==='1');
 
-// ── FIREBASE ──────────────────────────────────────────────
+// FIREBASE
 function getSavedCfg(){try{return JSON.parse(localStorage.getItem(CFG_KEY));}catch{return null;}}
 
-// ── SETUP AUTOFILL ────────────────────────────────────────
-// authDomain = project-id.firebaseapp.com
-// → projectId  = project-id
-// → storageBucket = project-id.appspot.com
+// SETUP AUTOFILL
 window.autofillFromAuthDomain=function(){
   const val=document.getElementById('cfg_authDomain').value.trim();
   const match=val.match(/^([a-zA-Z0-9_-]+)\.firebaseapp\.com$/);
@@ -66,12 +80,12 @@ window.saveFirebaseConfig=function(){
 
 function connectFirebase(cfg){
   try{
-    setLoadTxt('Verbinden met Firebase…');
+    setLoadTxt('Verbinden met Firebase...');
     const app=initializeApp(cfg);
     db=getFirestore(app);
-    setSyncStatus('yellow','Synchroniseren…');
+    setSyncStatus('yellow','Synchroniseren...');
     listenAll();
-  }catch(e){setLoadTxt('❌ '+e.message);}
+  }catch(e){setLoadTxt('Fout: '+e.message);}
 }
 
 function listenAll(){
@@ -92,7 +106,7 @@ function refreshActive(views){
   ({tools:renderTools,members:renderMembers,history:renderHistory,settings:renderSettings})[active]?.();
 }
 
-// ── VIEWS ─────────────────────────────────────────────────
+// VIEWS
 window.switchView=function(name,el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -101,15 +115,21 @@ window.switchView=function(name,el){
   ({tools:renderTools,members:renderMembers,history:renderHistory,settings:renderSettings})[name]?.();
 };
 
-// ── TOOLS ─────────────────────────────────────────────────
+// TOOLS
 function renderCatChips(){
   const sortedCats=[...DB.categories].sort((a,b)=>a.name.localeCompare(b.name,'nl'));
   document.getElementById('categoryChips').innerHTML=
-    [{id:'all',name:'Alles',icon:'🔧'},...sortedCats].map(c=>
-      `<div class="cat-chip ${selectedCategory===c.id?'active':''}" onclick="setCategory('${c.id}')">${c.icon} ${c.name}</div>`
-    ).join('');
+    [{id:'all',name:'Alles',icon:'📦'},...sortedCats].map(c=>{
+      const isAlles=c.id==='all';
+      const isActive=selectedCategory===c.id;
+      const classes=['cat-chip',isActive?'active':'',isAlles?'alles':''].filter(Boolean).join(' ');
+      return `<div class="${classes}" onclick="setCategory('${c.id}')"><span>${c.icon}</span><span class="chip-label">${c.name}</span></div>`;
+    }).join('');
 }
-window.setCategory=id=>{selectedCategory=id;renderTools();};
+window.setCategory=function(id){
+  selectedCategory=id;
+  renderTools();
+};
 
 function renderTools(){
   if(!db)return;
@@ -137,41 +157,43 @@ function toolCard(tool){
   const m=tool.holder?DB.members.find(x=>x.id===tool.holder):null;
   const cat=DB.categories.find(c=>c.id===tool.category);
   return`<div class="tool-card" onclick="openDetail('${tool.id}')">
-    <div class="tool-photo">${tool.photo?`<img src="${tool.photo}">`:(tool.emoji||'🔧')}</div>
+    <div class="tool-photo">${tool.photo?`<img src="${tool.photo}">`:(tool.emoji||'📦')}</div>
     <div class="tool-info">
       <div class="tool-name">${tool.name}</div>
       <div class="tool-cat">${cat?cat.icon+' '+cat.name:''}</div>
     </div>
     <div class="tool-member-right">
       ${memberAvatarHTML(m,'sm')}
-      <div class="member-name-small">${m?m.name:'—'}</div>
+      <div class="member-name-small">${m?m.name:'-'}</div>
     </div>
   </div>`;
 }
 
-// ── TOOL TOEVOEGEN/WIJZIGEN ────────────────────────────────
+// TOOL TOEVOEGEN/WIJZIGEN
 window.openAddToolSheet=function(){
-  if(!db){showToast('⚠️ Nog niet verbonden');return;}
-  editingToolId=null;photoData=null;selectedEmoji='🔧';toolHolderSel=null;
+  if(!db){showToast('Nog niet verbonden');return;}
+  editingToolId=null;photoData=null;selectedEmoji='📦';toolHolderSel=null;
   document.getElementById('sheetToolTitle').textContent='Item toevoegen';
   document.getElementById('toolNameInput').value='';
   document.getElementById('toolNotesInput').value='';
   document.getElementById('photoPreview').style.display='none';
   document.getElementById('removeToolPhotoBtn').style.display='none';
-  populateCatSelect();renderEmojiPicker('emojiPicker','tool');renderToolHolderPicker(null);
+  document.getElementById('toolEmojiDisplay').textContent='📦';
+  populateCatSelect();renderToolHolderPicker(null);
   openSheet('sheetTool');
 };
 window.editCurrentTool=function(){openEditTool(detailToolId);};
 function openEditTool(id){
   const t=DB.tools.find(x=>x.id===id);if(!t)return;
-  editingToolId=id;photoData=t.photo||null;selectedEmoji=t.emoji||'🔧';toolHolderSel=t.holder||null;
+  editingToolId=id;photoData=t.photo||null;selectedEmoji=t.emoji||'📦';toolHolderSel=t.holder||null;
   document.getElementById('sheetToolTitle').textContent='Item wijzigen';
   document.getElementById('toolNameInput').value=t.name;
   document.getElementById('toolNotesInput').value=t.notes||'';
+  document.getElementById('toolEmojiDisplay').textContent=selectedEmoji;
   const prev=document.getElementById('photoPreview');
   if(t.photo){prev.src=t.photo;prev.style.display='block';document.getElementById('removeToolPhotoBtn').style.display='block';}
   else{prev.style.display='none';document.getElementById('removeToolPhotoBtn').style.display='none';}
-  populateCatSelect(t.category);renderEmojiPicker('emojiPicker','tool',t.emoji);renderToolHolderPicker(t.holder);
+  populateCatSelect(t.category);renderToolHolderPicker(t.holder);
   closeAllSheets();setTimeout(()=>openSheet('sheetTool'),120);
 }
 function renderToolHolderPicker(cur){
@@ -191,248 +213,42 @@ function populateCatSelect(sel){
   document.getElementById('toolCatInput').innerHTML=DB.categories.map(c=>
     `<option value="${c.id}" ${c.id===sel?'selected':''}>${c.icon} ${c.name}</option>`).join('');
 }
-function renderEmojiPicker(cid,type,cur){
-  const emojis=type==='cat'?CAT_EMOJIS:EMOJIS;
-  if(type==='tool')selectedEmoji=cur||emojis[0];
-  if(type==='cat')selectedCatEmoji=cur||emojis[0];
-  const active=type==='tool'?selectedEmoji:selectedCatEmoji;
-  document.getElementById(cid).innerHTML=emojis.map(e=>
-    `<div class="tag ${e===active?'selected':''}" onclick="pickEmoji('${e}','${cid}','${type}')">${e}</div>`
-  ).join('');
-}
-window.pickEmoji=function(e,cid,type){
-  if(type==='tool')selectedEmoji=e;else selectedCatEmoji=e;
-  document.querySelectorAll(`#${cid} .tag`).forEach(el=>el.classList.toggle('selected',el.textContent===e));
-};
 
-// ── ZOEKFUNCTIE ───────────────────────────────────────────
-window.onSearchInput=function(){ renderTools(); };
-
-// ── LIGHTBOX ──────────────────────────────────────────────
-window.openLightbox=function(src){
-  document.getElementById('lightboxImg').src=src;
-  document.getElementById('lightbox').classList.add('open');
-};
-window.closeLightbox=function(){
-  document.getElementById('lightbox').classList.remove('open');
-  document.getElementById('lightboxImg').src='';
-};
-
-// ── FOTO MET CROP ─────────────────────────────────────────
-let _cropState={isTool:true,previewId:null,iconId:null};
-let _cropSrc='';
-let _crop={x:0,y:0,scale:1,vw:0,vh:0,iw:0,ih:0};
-let _cropTouch={startDist:0,startScale:1,lastX:0,lastY:0,touching:false};
-
-// Gedeelde handler — werkt voor camera én galerij
-function loadPhotoFile(file, previewId, iconId, isTool){
-  if(!file)return;
-  _cropState={isTool,previewId,iconId};
-  const reader=new FileReader();
-  reader.onload=function(e){
-    _cropSrc=e.target.result;
-    const img=new Image();
-    img.onload=function(){
-      _crop.iw=img.naturalWidth;
-      _crop.ih=img.naturalHeight;
-      startCrop();
-    };
-    img.src=_cropSrc;
-  };
-  reader.readAsDataURL(file);
-}
-
-// Tool foto — camera
-window.handlePhotoCamera=function(ev){
-  loadPhotoFile(ev.target.files[0],'photoPreview',null,true);
-  ev.target.value='';
-};
-// Tool foto — galerij
-window.handlePhotoGallery=function(ev){
-  loadPhotoFile(ev.target.files[0],'photoPreview',null,true);
-  ev.target.value='';
-};
-// Profielfoto — camera
-window.handleMemberPhotoCamera=function(ev){
-  loadPhotoFile(ev.target.files[0],'memberPhotoPreview','avatarUploadIcon',false);
-  ev.target.value='';
-};
-// Profielfoto — galerij
-window.handleMemberPhotoGallery=function(ev){
-  loadPhotoFile(ev.target.files[0],'memberPhotoPreview','avatarUploadIcon',false);
-  ev.target.value='';
-};
-
-function startCrop(){
-  document.getElementById('cropTitle').textContent=_cropState.isTool?'Foto bijsnijden':'Profielfoto bijsnijden';
-  const vp=document.getElementById('cropViewport');
-  vp.style.aspectRatio='1/1';
-  vp.style.borderRadius=_cropState.isTool?'14px':'50%';
-  vp.style.width='100%';
-  document.getElementById('cropModal').classList.add('open');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    _crop.vw=vp.offsetWidth;
-    _crop.vh=vp.offsetHeight||vp.offsetWidth;
-    const scaleX=_crop.vw/_crop.iw;
-    const scaleY=_crop.vh/_crop.ih;
-    _crop.scale=Math.max(scaleX,scaleY);
-    _crop.x=(_crop.vw-_crop.iw*_crop.scale)/2;
-    _crop.y=(_crop.vh-_crop.ih*_crop.scale)/2;
-    const ci=document.getElementById('cropImg');
-    ci.onload=null;
-    ci.src=_cropSrc;
-    ci.style.width=_crop.iw+'px';
-    ci.style.height=_crop.ih+'px';
-    ci.style.maxWidth='none';
-    ci.style.maxHeight='none';
-    applyCropTransform();
-    setupCropEvents();
-  }));
-}
-
-function applyCropTransform(){
-  const ci=document.getElementById('cropImg');
-  ci.style.transform=`translate(${_crop.x}px,${_crop.y}px) scale(${_crop.scale})`;
-  ci.style.transformOrigin='0 0';
-}
-
-function clampCrop(){
-  const minX=_crop.vw-_crop.iw*_crop.scale;
-  const minY=_crop.vh-_crop.ih*_crop.scale;
-  _crop.x=Math.min(0,Math.max(minX,_crop.x));
-  _crop.y=Math.min(0,Math.max(minY,_crop.y));
-}
-
-function setupCropEvents(){
-  const old=document.getElementById('cropViewport');
-  const fresh=old.cloneNode(true);
-  old.parentNode.replaceChild(fresh,old);
-  const el=document.getElementById('cropViewport');
-
-  el.addEventListener('touchstart',e=>{
-    e.preventDefault();
-    if(e.touches.length===1){
-      _cropTouch.lastX=e.touches[0].clientX;
-      _cropTouch.lastY=e.touches[0].clientY;
-      _cropTouch.touching=true;
-    }else if(e.touches.length===2){
-      _cropTouch.startDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-      _cropTouch.startScale=_crop.scale;
-      _cropTouch.touching=false;
-    }
-  },{passive:false});
-
-  el.addEventListener('touchmove',e=>{
-    e.preventDefault();
-    if(e.touches.length===1&&_cropTouch.touching){
-      const dx=e.touches[0].clientX-_cropTouch.lastX;
-      const dy=e.touches[0].clientY-_cropTouch.lastY;
-      _cropTouch.lastX=e.touches[0].clientX;
-      _cropTouch.lastY=e.touches[0].clientY;
-      _crop.x+=dx;_crop.y+=dy;
-      clampCrop();applyCropTransform();
-    }else if(e.touches.length===2){
-      const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-      const minScale=Math.max(_crop.vw/_crop.iw,_crop.vh/_crop.ih);
-      const newScale=Math.max(minScale,_cropTouch.startScale*(dist/_cropTouch.startDist));
-      const ratio=newScale/_crop.scale;
-      _crop.x=_crop.vw/2-(_crop.vw/2-_crop.x)*ratio;
-      _crop.y=_crop.vh/2-(_crop.vh/2-_crop.y)*ratio;
-      _crop.scale=newScale;
-      clampCrop();applyCropTransform();
-    }
-  },{passive:false});
-
-  el.addEventListener('touchend',()=>{_cropTouch.touching=false;});
-
-  let md=false,mlx=0,mly=0;
-  el.addEventListener('mousedown',e=>{md=true;mlx=e.clientX;mly=e.clientY;e.preventDefault();});
-  window.addEventListener('mousemove',e=>{if(!md)return;_crop.x+=e.clientX-mlx;_crop.y+=e.clientY-mly;mlx=e.clientX;mly=e.clientY;clampCrop();applyCropTransform();});
-  window.addEventListener('mouseup',()=>{md=false;});
-  el.addEventListener('wheel',e=>{
-    e.preventDefault();
-    const minScale=Math.max(_crop.vw/_crop.iw,_crop.vh/_crop.ih);
-    const newScale=Math.max(minScale,_crop.scale*(e.deltaY<0?1.12:.9));
-    const ratio=newScale/_crop.scale;
-    _crop.x=_crop.vw/2-(_crop.vw/2-_crop.x)*ratio;
-    _crop.y=_crop.vh/2-(_crop.vh/2-_crop.y)*ratio;
-    _crop.scale=newScale;
-    clampCrop();applyCropTransform();
-  },{passive:false});
-}
-
-window.cancelCrop=function(){
-  document.getElementById('cropModal').classList.remove('open');
-};
-
-window.confirmCrop=function(){
-  const OUT=500;
-  const canvas=document.createElement('canvas');
-  canvas.width=OUT;canvas.height=OUT;
-  const ctx=canvas.getContext('2d');
-  const srcImg=new Image();
-  srcImg.onload=function(){
-    const sx=-_crop.x/_crop.scale;
-    const sy=-_crop.y/_crop.scale;
-    const sw=_crop.vw/_crop.scale;
-    const sh=_crop.vh/_crop.scale;
-    ctx.drawImage(srcImg,sx,sy,sw,sh,0,0,OUT,OUT);
-    const data=canvas.toDataURL('image/jpeg',.85);
-    const prev=document.getElementById(_cropState.previewId);
-    prev.src=data;prev.style.display='block';
-    if(_cropState.iconId){const ic=document.getElementById(_cropState.iconId);if(ic)ic.style.display='none';}
-    if(_cropState.isTool){photoData=data;document.getElementById('removeToolPhotoBtn').style.display='block';}
-    else{memberPhotoData=data;document.getElementById('removeMemberPhotoBtn').style.display='block';}
-    document.getElementById('cropModal').classList.remove('open');
-  };
-  srcImg.src=_cropSrc;
-};
-
-window.removeToolPhoto=function(){
-  photoData='';
-  const prev=document.getElementById('photoPreview');
-  prev.src='';prev.style.display='none';
-  document.getElementById('removeToolPhotoBtn').style.display='none';
-};
-
-window.removeMemberPhoto=function(){
-  memberPhotoData='';
-  const prev=document.getElementById('memberPhotoPreview');
-  prev.src='';prev.style.display='none';
-  document.getElementById('avatarUploadIcon').style.display='flex';
-  document.getElementById('removeMemberPhotoBtn').style.display='none';
-};
-
-// ── TOOL OPSLAAN / VERWIJDEREN ────────────────────────────
 window.saveTool=async function(){
   const name=document.getElementById('toolNameInput').value.trim();
-  if(!name){showToast('⚠️ Voer een naam in');return;}
-  if(!editingToolId&&toolHolderSel===null){showToast('⚠️ Kies wie het item heeft');return;}
-  const data={name,category:document.getElementById('toolCatInput').value,notes:document.getElementById('toolNotesInput').value.trim(),emoji:selectedEmoji,photo:photoData===null?'':photoData,updatedAt:Date.now()};
+  if(!name){showToast('Voer een naam in');return;}
+  const data={
+    name,
+    category:document.getElementById('toolCatInput').value,
+    emoji:selectedEmoji,
+    photo:photoData||'',
+    notes:document.getElementById('toolNotesInput').value.trim(),
+  };
   try{
-    setSyncStatus('yellow','Opslaan…');
+    setSyncStatus('yellow','Opslaan...');
     if(editingToolId){
       await setDoc(doc(db,'tools',editingToolId),data,{merge:true});
       if(toolHolderSel!==null)await setDoc(doc(db,'tools',editingToolId),{holder:toolHolderSel},{merge:true});
-      showToast('✅ Item bijgewerkt');
+      showToast('Item bijgewerkt');
     }else{
       const entry={who:toolHolderSel,action:'checked out',date:Date.now()};
       await addDoc(collection(db,'tools'),{...data,holder:toolHolderSel,history:[entry],createdAt:Date.now()});
       await addDoc(collection(db,'history'),{toolId:'new',toolName:name,...entry});
-      showToast('✅ Item toegevoegd!');
+      showToast('Item toegevoegd!');
     }
     closeAllSheets();
-  }catch(e){showToast('❌ '+e.message);setSyncStatus('red','Fout');}
+  }catch(e){showToast('Fout: '+e.message);setSyncStatus('red','Fout');}
 };
+window.removeToolPhoto=function(){photoData=null;document.getElementById('photoPreview').style.display='none';document.getElementById('removeToolPhotoBtn').style.display='none';};
 window.deleteCurrentTool=async function(){
   if(!detailToolId)return;
   const t=DB.tools.find(x=>x.id===detailToolId);
   if(!confirm(`"${t?.name}" definitief verwijderen?`))return;
-  try{await deleteDoc(doc(db,'tools',detailToolId));closeAllSheets();showToast('🗑️ Item verwijderd');}
-  catch(e){showToast('❌ '+e.message);}
+  try{await deleteDoc(doc(db,'tools',detailToolId));closeAllSheets();showToast('Item verwijderd');}
+  catch(e){showToast('Fout: '+e.message);}
 };
 
-// ── TOOL DETAIL ───────────────────────────────────────────
+// TOOL DETAIL
 window.openDetail=function(id){
   const t=DB.tools.find(x=>x.id===id);if(!t)return;
   detailToolId=id;detailSelMember=t.holder;drawDetailSheet(t);openSheet('sheetDetail');
@@ -445,12 +261,25 @@ function refreshDetailIfOpen(){
 }
 function drawDetailSheet(t){
   const cat=DB.categories.find(c=>c.id===t.category);
-  document.getElementById('detailHero').innerHTML=t.photo
-    ?`<img src="${t.photo}" style="cursor:zoom-in" onclick="openLightbox('${t.photo.replace(/'/g,"\\'")}')">`
-    :(t.emoji||'🔧');
+  const heroEl=document.getElementById('detailHero');
+  if(t.photo){
+    const safeUrl=t.photo.replace(/'/g,"\\'");
+    heroEl.innerHTML=`<img src="${t.photo}" onclick="openLightbox('${safeUrl}')">`;
+  }else{
+    heroEl.innerHTML=t.emoji||'📦';
+  }
   document.getElementById('detailName').textContent=t.name;
   document.getElementById('detailCat').textContent=cat?cat.icon+' '+cat.name:'';
-  document.getElementById('detailNotes').textContent=t.notes||'Geen notities.';
+  const notesEl=document.getElementById('detailNotes');
+  if(t.notes&&t.notes.trim()){
+    notesEl.textContent=t.notes;
+    notesEl.style.fontStyle='normal';
+    notesEl.style.color='';
+  }else{
+    notesEl.textContent='Geen notities.';
+    notesEl.style.fontStyle='italic';
+    notesEl.style.color='var(--text3)';
+  }
   document.getElementById('detailMemberGrid').innerHTML=DB.members.map(m=>
     `<div class="member-option ${detailSelMember===m.id?'selected':''}" data-mid="${m.id}" onclick="selectMember('${m.id}')">
       ${memberAvatarHTML(m,'lg')}
@@ -473,31 +302,32 @@ window.confirmCheckout=async function(){
   const who=detailSelMember||t.holder;
   const entry={who,action,date:Date.now()};
   try{
-    setSyncStatus('yellow','Opslaan…');
+    setSyncStatus('yellow','Opslaan...');
     await setDoc(doc(db,'tools',detailToolId),{holder:detailSelMember,history:[...(t.history||[]),entry]},{merge:true});
     await addDoc(collection(db,'history'),{toolId:detailToolId,toolName:t.name,...entry});
     const mem=DB.members.find(m=>m.id===who);
-    showToast(detailSelMember?`➡️ ${t.name} → ${mem?.name}`:`⬅️ ${t.name} teruggegeven`);
+    showToast(detailSelMember?`${t.name} - naar ${mem?.name}`:`${t.name} teruggegeven`);
     closeAllSheets();
-  }catch(e){showToast('❌ '+e.message);}
+  }catch(e){showToast('Fout: '+e.message);}
 };
 
-// ── FAMILIE ───────────────────────────────────────────────
+// FAMILIE (weergave alleen - beheer via Instellingen)
 function renderMembers(){
   const el=document.getElementById('membersList');
-  if(!DB.members.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Nog geen leden</div><div class="empty-text">Tik ➕ om een familielid toe te voegen</div></div>`;return;}
+  if(!DB.members.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Nog geen leden</div><div class="empty-text">Voeg familieleden toe via Instellingen</div></div>`;return;}
   const members=[...DB.members].sort((a,b)=>a.name.localeCompare(b.name,'nl'));
   el.innerHTML=`<div class="members-grid">`+members.map(m=>{
     const cnt=DB.tools.filter(t=>t.holder===m.id).length;
     const inner=m.photo?`<img src="${m.photo}">`:`<span>${m.name[0]}</span>`;
     return`<div class="member-card" onclick="showMemberTools('${m.id}')">
-      <button class="member-card-edit" onclick="event.stopPropagation();openEditMember('${m.id}')">✏️</button>
       <div class="member-card-avatar" style="background:${m.color}22;color:${m.color}">${inner}</div>
       <div class="member-card-name">${m.name}</div>
       <div class="member-card-count">${cnt} item${cnt!==1?'s':''} in bezit</div>
     </div>`;
   }).join('')+'</div>';
 }
+
+// Member edit/add (aangeroepen vanuit Instellingen)
 window.openAddMemberSheet=function(){
   editingMemberId=null;memberPhotoData=null;
   document.getElementById('sheetMemberTitle').textContent='Lid toevoegen';
@@ -535,24 +365,26 @@ function renderColorPicker(){
   ).join('');
 }
 window.pickColor=function(c){selectedColor=c;renderColorPicker();};
+window.removeMemberPhoto=function(){memberPhotoData=null;document.getElementById('memberPhotoPreview').style.display='none';document.getElementById('avatarUploadIcon').style.display='flex';document.getElementById('removeMemberPhotoBtn').style.display='none';};
 window.saveMember=async function(){
   const name=document.getElementById('memberNameInput').value.trim();
-  if(!name){showToast('⚠️ Voer een naam in');return;}
+  if(!name){showToast('Voer een naam in');return;}
   const data={name,color:selectedColor,photo:memberPhotoData===null?'':memberPhotoData};
   try{
-    if(editingMemberId){await setDoc(doc(db,'members',editingMemberId),data,{merge:true});showToast('✅ Lid bijgewerkt');}
-    else{await addDoc(collection(db,'members'),data);showToast('✅ '+name+' toegevoegd!');}
+    if(editingMemberId){await setDoc(doc(db,'members',editingMemberId),data,{merge:true});showToast('Lid bijgewerkt');}
+    else{await addDoc(collection(db,'members'),data);showToast(name+' toegevoegd!');}
     closeAllSheets();
-  }catch(e){showToast('❌ '+e.message);}
+    setTimeout(()=>renderSettings(),200);
+  }catch(e){showToast('Fout: '+e.message);}
 };
 window.deleteMember=async function(){
   if(!editingMemberId)return;
   const m=DB.members.find(x=>x.id===editingMemberId);
   const cnt=DB.tools.filter(t=>t.holder===editingMemberId).length;
-  if(cnt>0){showToast(`⚠️ ${m.name} heeft nog ${cnt} item(s)`);return;}
+  if(cnt>0){showToast(`${m.name} heeft nog ${cnt} item(s)`);return;}
   if(!confirm(`${m.name} verwijderen?`))return;
-  try{await deleteDoc(doc(db,'members',editingMemberId));closeAllSheets();showToast('🗑️ Lid verwijderd');}
-  catch(e){showToast('❌ '+e.message);}
+  try{await deleteDoc(doc(db,'members',editingMemberId));closeAllSheets();showToast('Lid verwijderd');setTimeout(()=>renderSettings(),200);}
+  catch(e){showToast('Fout: '+e.message);}
 };
 window.showMemberTools=function(mid){
   const m=DB.members.find(x=>x.id===mid);
@@ -565,78 +397,147 @@ window.showMemberTools=function(mid){
   document.getElementById('toolsList').innerHTML=tools.map(toolCard).join('');
 };
 
-// ── LOGBOEK ───────────────────────────────────────────────
+// LOGBOEK
 function renderHistory(){
   const el=document.getElementById('historyList');
   if(!DB.history.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Nog geen activiteit</div><div class="empty-text">Voeg een item toe om de geschiedenis te starten</div></div>`;return;}
   el.innerHTML=`<div class="section-title">Recente activiteit</div>`+DB.history.map(h=>{
     const mem=DB.members.find(m=>m.id===h.who);
-    return`<div class="history-item"><div class="history-icon">${h.action==='checked out'?'➡️':'⬅️'}</div><div class="history-text"><div class="history-action"><strong>${h.toolName}</strong> — naar ${mem?mem.name:'Onbekend'}</div><div class="history-date">${fmtDate(h.date)}</div></div></div>`;
+    return`<div class="history-item"><div class="history-icon">${h.action==='checked out'?'➡️':'⬅️'}</div><div class="history-text"><div class="history-action"><strong>${h.toolName}</strong> - naar ${mem?mem.name:'Onbekend'}</div><div class="history-date">${fmtDate(h.date)}</div></div></div>`;
   }).join('');
 }
 
-// ── INSTELLINGEN ──────────────────────────────────────────
-function renderSettings(){
-  document.getElementById('settingsList').innerHTML=`
-    <div class="settings-section">
-      <div class="settings-section-title">Categorieën</div>
-      ${[...DB.categories].sort((a,b)=>a.name.localeCompare(b.name,'nl')).map(c=>`
-        <div class="cat-manage-item">
-          <div class="cat-icon">${c.icon}</div>
-          <div class="cat-name">${c.name}</div>
-          <div class="cat-action-btns">
-            <button class="cat-action-btn cat-edit-btn" onclick="openEditCategory('${c.id}')">✏️</button>
-            <button class="cat-action-btn cat-delete-btn" onclick="deleteCategory('${c.id}')">🗑️</button>
-          </div>
-        </div>`).join('')}
-      <div style="margin-top:9px"><button class="btn btn-ghost" onclick="openAddCategorySheet()">＋ Categorie toevoegen</button></div>
-    </div>
-
-    <div class="settings-section">
-      <div class="collapsible-header" onclick="toggleDataSec()">
-        <div class="settings-section-title" style="margin-bottom:0">Data (alleen voor Maarten)</div>
-        <span class="collapsible-arrow" id="dataArrow">›</span>
-      </div>
-      <div class="collapsible-body" id="dataBody">
-        <div style="height:8px"></div>
-        <div class="settings-row" onclick="exportData()"><div class="settings-row-left"><div class="settings-row-icon">💾</div><div class="settings-row-text">Export backup (JSON)</div></div><div class="settings-row-chevron">›</div></div>
-        <div class="settings-row" onclick="doClearHistory()"><div class="settings-row-left"><div class="settings-row-icon">🗑️</div><div class="settings-row-text">Geschiedenis wissen</div></div><div class="settings-row-chevron">›</div></div>
-        <div class="settings-row" onclick="resetCfg()"><div class="settings-row-left"><div class="settings-row-icon">🔥</div><div class="settings-row-text">Firebase config wijzigen</div></div><div class="settings-row-chevron">›</div></div>
-      </div>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-section-title">App installeren op telefoon</div>
-      <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone: tik Delen → "Zet op beginscherm"</div></div></div>
-      <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🤖</div><div class="settings-row-text">Android: tik ⋮ → "Toevoegen aan beginscherm"</div></div></div>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-section-title">Over</div>
-      <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 — Saarloosjes</div></div></div>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-section-title">Verbindingsstatus</div>
-      <div class="settings-row" id="syncStatusRow">
-        <div class="settings-row-left">
-          <div class="settings-row-icon"><span class="sync-dot yellow" id="syncDotSettings" style="width:10px;height:10px;display:inline-block"></span></div>
-          <div class="settings-row-text" id="syncTextSettings">Verbinden…</div>
-        </div>
-      </div>
-    </div>`;
-  const ds=document.getElementById('syncDotSettings'),ts=document.getElementById('syncTextSettings');
-  if(ds){ds.className='sync-dot '+_syncColor;ts.textContent=_syncLabel;}
-}
-window.toggleDataSec=function(){
-  document.getElementById('dataBody').classList.toggle('open');
-  document.getElementById('dataArrow').classList.toggle('open');
+// INSTELLINGEN - accordion
+let _openSection=null;
+window.toggleSection=function(id){
+  const wasOpen=_openSection===id;
+  // sluit alle secties
+  document.querySelectorAll('.settings-section').forEach(s=>{
+    s.classList.remove('sec-open');
+    const body=s.querySelector('.collapsible-body');
+    const arrow=s.querySelector('.collapsible-arrow');
+    if(body)body.classList.remove('open');
+    if(arrow)arrow.classList.remove('open');
+  });
+  _openSection=null;
+  if(!wasOpen){
+    const sec=document.getElementById('sec-'+id);
+    if(sec){
+      sec.classList.add('sec-open');
+      const body=document.getElementById('body-'+id);
+      const arrow=document.getElementById('arrow-'+id);
+      if(body)body.classList.add('open');
+      if(arrow)arrow.classList.add('open');
+      _openSection=id;
+    }
+  }
 };
+
+function secHTML(id,title,bodyContent){
+  return`<div class="settings-section" id="sec-${id}">
+    <div class="collapsible-header" onclick="toggleSection('${id}')">
+      <div class="settings-section-title">${title}</div>
+      <span class="collapsible-arrow" id="arrow-${id}">›</span>
+    </div>
+    <div class="collapsible-body" id="body-${id}">
+      ${bodyContent}
+    </div>
+  </div>`;
+}
+
+function renderSettings(){
+  // Categorieeen sectie
+  const catsHTML=`<div style="padding-top:6px">
+    ${[...DB.categories].sort((a,b)=>a.name.localeCompare(b.name,'nl')).map(c=>`
+      <div class="cat-manage-item">
+        <div class="cat-icon">${c.icon}</div>
+        <div class="cat-name">${c.name}</div>
+        <div class="cat-action-btns">
+          <button class="cat-action-btn cat-edit-btn" onclick="openEditCategory('${c.id}')">✏️</button>
+          <button class="cat-action-btn cat-delete-btn" onclick="deleteCategory('${c.id}')">🗑️</button>
+        </div>
+      </div>`).join('')}
+    <div style="margin-top:9px"><button class="btn btn-ghost" onclick="openAddCategorySheet()">+ Categorie toevoegen</button></div>
+  </div>`;
+
+  // Familie sectie
+  const membersHTML=`<div style="padding-top:6px">
+    ${[...DB.members].sort((a,b)=>a.name.localeCompare(b.name,'nl')).map(m=>{
+      const inner=m.photo?`<img src="${m.photo}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle">`:m.name[0];
+      return`<div class="cat-manage-item">
+        <div class="cat-icon" style="font-size:14px;width:24px;height:24px;border-radius:50%;background:${m.color}22;color:${m.color};display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;overflow:hidden">${inner}</div>
+        <div class="cat-name" style="color:${m.color}">${m.name}</div>
+        <div class="cat-action-btns">
+          <button class="cat-action-btn cat-edit-btn" onclick="openEditMember('${m.id}')">✏️</button>
+          <button class="cat-action-btn cat-delete-btn" onclick="deleteMemberDirect('${m.id}')">🗑️</button>
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="margin-top:9px"><button class="btn btn-ghost" onclick="openAddMemberSheet()">+ Familielid toevoegen</button></div>
+  </div>`;
+
+  // Data sectie
+  const dataHTML=`<div style="padding-top:6px">
+    <div class="settings-row" onclick="exportData()"><div class="settings-row-left"><div class="settings-row-icon">💾</div><div class="settings-row-text">Export backup (JSON)</div></div><div class="settings-row-chevron">›</div></div>
+    <div class="settings-row" onclick="doClearHistory()"><div class="settings-row-left"><div class="settings-row-icon">🗑️</div><div class="settings-row-text">Geschiedenis wissen</div></div><div class="settings-row-chevron">›</div></div>
+    <div class="settings-row" onclick="resetCfg()"><div class="settings-row-left"><div class="settings-row-icon">🔥</div><div class="settings-row-text">Firebase config wijzigen</div></div><div class="settings-row-chevron">›</div></div>
+  </div>`;
+
+  // App installeren sectie
+  const installHTML=`<div style="padding-top:6px">
+    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone - tik Delen - "Zet op beginscherm"</div></div></div>
+    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🤖</div><div class="settings-row-text">Android - tik op menu - "Toevoegen aan beginscherm"</div></div></div>
+  </div>`;
+
+  // Verbinding sectie
+  const connHTML=`<div style="padding-top:6px">
+    <div class="settings-row" id="syncStatusRow">
+      <div class="settings-row-left">
+        <div class="settings-row-icon"><span class="sync-dot ${_syncColor}" id="syncDotSettings" style="width:10px;height:10px;display:inline-block"></span></div>
+        <div class="settings-row-text" id="syncTextSettings">${_syncLabel}</div>
+      </div>
+    </div>
+  </div>`;
+
+  // Over sectie
+  const aboutHTML=`<div style="padding-top:6px">
+    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
+  </div>`;
+
+  document.getElementById('settingsList').innerHTML=
+    secHTML('cats','Categorieen',catsHTML)+
+    secHTML('familie','Familie',membersHTML)+
+    secHTML('data','Data (alleen voor Maarten)',dataHTML)+
+    secHTML('install','App installeren',installHTML)+
+    secHTML('connect','Verbinding',connHTML)+
+    secHTML('about','Over',aboutHTML);
+
+  // herstel open sectie na re-render
+  if(_openSection){
+    const sec=document.getElementById('sec-'+_openSection);
+    const body=document.getElementById('body-'+_openSection);
+    const arrow=document.getElementById('arrow-'+_openSection);
+    if(sec)sec.classList.add('sec-open');
+    if(body)body.classList.add('open');
+    if(arrow)arrow.classList.add('open');
+  }
+}
+
+window.deleteMemberDirect=async function(id){
+  const m=DB.members.find(x=>x.id===id);if(!m)return;
+  const cnt=DB.tools.filter(t=>t.holder===id).length;
+  if(cnt>0){showToast(`${m.name} heeft nog ${cnt} item(s)`);return;}
+  if(!confirm(`${m.name} verwijderen?`))return;
+  try{await deleteDoc(doc(db,'members',id));showToast('Lid verwijderd');}
+  catch(e){showToast('Fout: '+e.message);}
+};
+
 window.openAddCategorySheet=function(){
   editingCatId=null;
   document.getElementById('sheetCatTitle').textContent='Categorie toevoegen';
   document.getElementById('catNameInput').value='';
-  selectedCatEmoji='📦';renderEmojiPicker('catEmojiPicker','cat','📦');
+  selectedCatEmoji='📦';
+  document.getElementById('catEmojiDisplay').textContent='📦';
   openSheet('sheetCategory');
 };
 window.openEditCategory=function(id){
@@ -644,42 +545,199 @@ window.openEditCategory=function(id){
   editingCatId=id;
   document.getElementById('sheetCatTitle').textContent='Categorie wijzigen';
   document.getElementById('catNameInput').value=c.name;
-  selectedCatEmoji=c.icon||'📦';renderEmojiPicker('catEmojiPicker','cat',c.icon);
+  selectedCatEmoji=c.icon||'📦';
+  document.getElementById('catEmojiDisplay').textContent=selectedCatEmoji;
   openSheet('sheetCategory');
 };
 window.saveCategory=async function(){
   const name=document.getElementById('catNameInput').value.trim();
-  if(!name){showToast('⚠️ Voer een naam in');return;}
+  if(!name){showToast('Voer een naam in');return;}
   try{
-    if(editingCatId){await setDoc(doc(db,'categories',editingCatId),{name,icon:selectedCatEmoji},{merge:true});showToast('✅ Categorie bijgewerkt');}
-    else{const id=name.toLowerCase().replace(/\s+/g,'_')+'_'+Date.now();await setDoc(doc(db,'categories',id),{name,icon:selectedCatEmoji});showToast('✅ Categorie toegevoegd');}
+    if(editingCatId){await setDoc(doc(db,'categories',editingCatId),{name,icon:selectedCatEmoji},{merge:true});showToast('Categorie bijgewerkt');}
+    else{const id=name.toLowerCase().replace(/\s+/g,'_')+'_'+Date.now();await setDoc(doc(db,'categories',id),{name,icon:selectedCatEmoji});showToast('Categorie toegevoegd');}
     closeAllSheets();
-  }catch(e){showToast('❌ '+e.message);}
+  }catch(e){showToast('Fout: '+e.message);}
 };
 window.deleteCategory=async function(id){
-  if(DB.tools.some(t=>t.category===id)){showToast('⚠️ Er zijn nog items gekoppeld aan deze categorie');return;}
+  if(DB.tools.some(t=>t.category===id)){showToast('Er zijn nog items gekoppeld aan deze categorie');return;}
   const c=DB.categories.find(x=>x.id===id);
   if(!confirm(`Categorie "${c?.name}" verwijderen?`))return;
-  try{await deleteDoc(doc(db,'categories',id));showToast('🗑️ Categorie verwijderd');}
-  catch(e){showToast('❌ '+e.message);}
+  try{await deleteDoc(doc(db,'categories',id));showToast('Categorie verwijderd');}
+  catch(e){showToast('Fout: '+e.message);}
 };
 window.exportData=function(){
   const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='shere-backup.json';a.click();
-  showToast('💾 Geëxporteerd!');
+  showToast('Geexporteerd!');
 };
 window.doClearHistory=async function(){
   if(!confirm('Alle geschiedenis verwijderen? Dit kan niet ongedaan worden gemaakt.'))return;
-  try{const batch=writeBatch(db);(await getDocs(collection(db,'history'))).forEach(d=>batch.delete(d.ref));await batch.commit();showToast('🗑️ Geschiedenis gewist');}
-  catch(e){showToast('❌ '+e.message);}
+  try{const batch=writeBatch(db);(await getDocs(collection(db,'history'))).forEach(d=>batch.delete(d.ref));await batch.commit();showToast('Geschiedenis gewist');}
+  catch(e){showToast('Fout: '+e.message);}
 };
 window.resetCfg=function(){if(!confirm('Firebase config resetten? De app herlaadt.'))return;localStorage.removeItem(CFG_KEY);location.reload();};
 
-// ── SHEETS ────────────────────────────────────────────────
+// EMOJI PICKER (WhatsApp-stijl)
+window.openEmojiPicker=function(target){
+  _emojiTarget=target;
+  _emojiCatIdx=0;
+  renderEmojiPickerModal();
+  document.getElementById('emojiModal').classList.add('open');
+};
+window.closeEmojiPicker=function(){
+  document.getElementById('emojiModal').classList.remove('open');
+};
+function renderEmojiPickerModal(){
+  const cats=EMOJI_CATS;
+  document.getElementById('emojiPickerCats').innerHTML=cats.map((c,i)=>
+    `<button class="emoji-cat-btn ${i===_emojiCatIdx?'active':''}" onclick="switchEmojiCat(${i})" title="${c.name}">${c.icon}</button>`
+  ).join('');
+  renderEmojiGrid();
+}
+window.switchEmojiCat=function(i){
+  _emojiCatIdx=i;
+  document.querySelectorAll('.emoji-cat-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  renderEmojiGrid();
+};
+function renderEmojiGrid(){
+  const emojis=EMOJI_CATS[_emojiCatIdx].emojis;
+  document.getElementById('emojiPickerGrid').innerHTML=emojis.map(e=>
+    `<button class="emoji-btn" onclick="pickEmojiFromModal('${e}')">${e}</button>`
+  ).join('');
+  document.getElementById('emojiPickerGrid').scrollTop=0;
+}
+window.pickEmojiFromModal=function(e){
+  if(_emojiTarget==='tool'){
+    selectedEmoji=e;
+    document.getElementById('toolEmojiDisplay').textContent=e;
+  }else{
+    selectedCatEmoji=e;
+    document.getElementById('catEmojiDisplay').textContent=e;
+  }
+  closeEmojiPicker();
+};
+
+// ZOEKFUNCTIE
+window.onSearchInput=function(){renderTools();};
+
+// LIGHTBOX
+window.openLightbox=function(src){
+  document.getElementById('lightboxImg').src=src;
+  document.getElementById('lightbox').classList.add('open');
+};
+window.closeLightbox=function(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightboxImg').src='';
+};
+
+// FOTO MET CROP
+let _cropState={isTool:true,previewId:null,iconId:null};
+let _cropSrc='';
+let _crop={x:0,y:0,scale:1,vw:0,vh:0,iw:0,ih:0};
+let _cropTouch={startDist:0,startScale:1,lastX:0,lastY:0,touching:false};
+
+function loadPhotoFile(file,previewId,iconId,isTool){
+  if(!file)return;
+  _cropState={isTool,previewId,iconId};
+  const reader=new FileReader();
+  reader.onload=function(e){
+    _cropSrc=e.target.result;
+    const img=new Image();
+    img.onload=function(){_crop.iw=img.naturalWidth;_crop.ih=img.naturalHeight;startCrop();};
+    img.src=_cropSrc;
+  };
+  reader.readAsDataURL(file);
+}
+
+window.handlePhotoCamera=function(ev){loadPhotoFile(ev.target.files[0],'photoPreview',null,true);ev.target.value='';};
+window.handlePhotoGallery=function(ev){loadPhotoFile(ev.target.files[0],'photoPreview',null,true);ev.target.value='';};
+window.handleMemberPhotoCamera=function(ev){loadPhotoFile(ev.target.files[0],'memberPhotoPreview','avatarUploadIcon',false);ev.target.value='';};
+window.handleMemberPhotoGallery=function(ev){loadPhotoFile(ev.target.files[0],'memberPhotoPreview','avatarUploadIcon',false);ev.target.value='';};
+
+function startCrop(){
+  document.getElementById('cropTitle').textContent=_cropState.isTool?'Foto bijsnijden':'Profielfoto bijsnijden';
+  const vp=document.getElementById('cropViewport');
+  vp.style.aspectRatio='1/1';
+  vp.style.borderRadius=_cropState.isTool?'14px':'50%';
+  vp.style.width='100%';
+  document.getElementById('cropModal').classList.add('open');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    _crop.vw=vp.offsetWidth;_crop.vh=vp.offsetHeight||vp.offsetWidth;
+    const scaleX=_crop.vw/_crop.iw,scaleY=_crop.vh/_crop.ih;
+    _crop.scale=Math.max(scaleX,scaleY);
+    _crop.x=(_crop.vw-_crop.iw*_crop.scale)/2;
+    _crop.y=(_crop.vh-_crop.ih*_crop.scale)/2;
+    const ci=document.getElementById('cropImg');
+    ci.onload=null;ci.src=_cropSrc;
+    ci.style.width=_crop.iw+'px';ci.style.height=_crop.ih+'px';
+    ci.style.maxWidth='none';ci.style.maxHeight='none';
+    applyCropTransform();setupCropEvents();
+  }));
+}
+function applyCropTransform(){
+  const ci=document.getElementById('cropImg');
+  ci.style.transform=`translate(${_crop.x}px,${_crop.y}px) scale(${_crop.scale})`;
+  ci.style.transformOrigin='0 0';
+}
+function clampCrop(){
+  const minX=_crop.vw-_crop.iw*_crop.scale,minY=_crop.vh-_crop.ih*_crop.scale;
+  _crop.x=Math.min(0,Math.max(minX,_crop.x));
+  _crop.y=Math.min(0,Math.max(minY,_crop.y));
+}
+function setupCropEvents(){
+  const old=document.getElementById('cropViewport');
+  const fresh=old.cloneNode(true);
+  fresh.appendChild(document.getElementById('cropImg'));
+  old.parentNode.replaceChild(fresh,old);
+  let dragging=false,lastMX=0,lastMY=0;
+  fresh.addEventListener('mousedown',e=>{dragging=true;lastMX=e.clientX;lastMY=e.clientY;});
+  fresh.addEventListener('mousemove',e=>{if(!dragging)return;_crop.x+=e.clientX-lastMX;_crop.y+=e.clientY-lastMY;lastMX=e.clientX;lastMY=e.clientY;clampCrop();applyCropTransform();});
+  fresh.addEventListener('mouseup',()=>dragging=false);
+  fresh.addEventListener('mouseleave',()=>dragging=false);
+  let t1=null,t2=null;
+  fresh.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    if(e.touches.length===1){t1={x:e.touches[0].clientX,y:e.touches[0].clientY};_cropTouch.lastX=t1.x;_cropTouch.lastY=t1.y;}
+    if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;_cropTouch.startDist=Math.sqrt(dx*dx+dy*dy);_cropTouch.startScale=_crop.scale;}
+  },{passive:false});
+  fresh.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(e.touches.length===1){const dx=e.touches[0].clientX-_cropTouch.lastX,dy=e.touches[0].clientY-_cropTouch.lastY;_crop.x+=dx;_crop.y+=dy;_cropTouch.lastX=e.touches[0].clientX;_cropTouch.lastY=e.touches[0].clientY;clampCrop();applyCropTransform();}
+    if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;const dist=Math.sqrt(dx*dx+dy*dy);const newScale=_cropTouch.startScale*(dist/_cropTouch.startDist);_crop.scale=Math.max(Math.max(_crop.vw/_crop.iw,_crop.vh/_crop.ih),newScale);clampCrop();applyCropTransform();}
+  },{passive:false});
+  fresh.addEventListener('touchend',()=>{t1=null;t2=null;});
+}
+window.cancelCrop=function(){document.getElementById('cropModal').classList.remove('open');};
+window.confirmCrop=function(){
+  const ci=document.getElementById('cropImg');
+  const canvas=document.createElement('canvas');
+  const size=500;canvas.width=size;canvas.height=size;
+  const ctx=canvas.getContext('2d');
+  const sx=-_crop.x/_crop.scale,sy=-_crop.y/_crop.scale;
+  const sw=_crop.vw/_crop.scale,sh=_crop.vh/_crop.scale;
+  ctx.drawImage(ci,sx,sy,sw,sh,0,0,size,size);
+  const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+  document.getElementById('cropModal').classList.remove('open');
+  if(_cropState.isTool){
+    photoData=dataUrl;
+    const prev=document.getElementById(_cropState.previewId);
+    prev.src=dataUrl;prev.style.display='block';
+    document.getElementById('removeToolPhotoBtn').style.display='block';
+  }else{
+    memberPhotoData=dataUrl;
+    const prev=document.getElementById(_cropState.previewId);
+    prev.src=dataUrl;prev.style.display='block';
+    const ic=document.getElementById(_cropState.iconId);
+    if(ic)ic.style.display='none';
+    document.getElementById('removeMemberPhotoBtn').style.display='block';
+  }
+};
+
+// SHEETS
 window.openSheet=function(id){document.getElementById('overlay').classList.add('open');document.getElementById(id).classList.add('open');};
 window.closeAllSheets=function(){document.getElementById('overlay').classList.remove('open');document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));};
 
-// ── UTILS ─────────────────────────────────────────────────
+// UTILS
 window.showToast=function(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
@@ -704,7 +762,7 @@ function setSyncStatus(c,t){
 function setLoadTxt(t){const el=document.getElementById('loadingText');if(el)el.textContent=t;}
 function hideLoading(){const el=document.getElementById('loadingOverlay');el.classList.add('hidden');setTimeout(()=>el.style.display='none',400);renderTools();}
 
-// ── OPSTARTEN ─────────────────────────────────────────────
+// OPSTARTEN
 const saved=getSavedCfg();
 if(saved&&saved.apiKey&&saved.projectId){connectFirebase(saved);}
 else{
@@ -713,6 +771,6 @@ else{
   document.getElementById('setupScreen').classList.remove('hidden');
 }
 document.addEventListener('touchmove',e=>{
-  if(e.target.closest('.sheet-body,.tools-container,.categories-scroll,.setup-card'))return;
+  if(e.target.closest('.sheet-body,.tools-container,.categories-scroll,.setup-card,.emoji-grid,.emoji-cats'))return;
   e.preventDefault();
 },{passive:false});
