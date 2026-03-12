@@ -235,6 +235,7 @@ window.saveTool=async function(){
       await addDoc(collection(db,'tools'),{...data,holder:toolHolderSel,history:[entry],createdAt:Date.now()});
       await addDoc(collection(db,'history'),{toolId:'new',toolName:name,...entry});
       showToast('Item toegevoegd!');
+      setTimeout(playConfetti,200);
     }
     closeAllSheets();
   }catch(e){showToast('Fout: '+e.message);setSyncStatus('red','Fout');}
@@ -388,7 +389,7 @@ window.deleteMember=async function(){
 };
 window.showMemberTools=function(mid){
   const m=DB.members.find(x=>x.id===mid);
-  const tools=DB.tools.filter(t=>t.holder===mid);
+  const tools=[...DB.tools.filter(t=>t.holder===mid)].sort((a,b)=>a.name.localeCompare(b.name,'nl'));
   if(!tools.length){showToast(`${m.name} heeft geen items`);return;}
   selectedCategory='all';document.getElementById('searchInput').value='';
   switchView('tools',document.querySelector('.nav-item'));
@@ -761,6 +762,41 @@ function setSyncStatus(c,t){
 }
 function setLoadTxt(t){const el=document.getElementById('loadingText');if(el)el.textContent=t;}
 function hideLoading(){const el=document.getElementById('loadingOverlay');el.classList.add('hidden');setTimeout(()=>el.style.display='none',400);renderTools();}
+
+// CONFETTI ANIMATIE
+function playConfetti(){
+  const canvas=document.getElementById('confettiCanvas');
+  const overlay=document.getElementById('confettiOverlay');
+  canvas.style.display='block';
+  overlay.classList.add('active');
+
+  const confettiInstance=window.confetti.create(canvas,{resize:true,useWorker:false});
+
+  // Eerste burst vanuit het midden
+  confettiInstance({
+    particleCount:120,
+    spread:90,
+    startVelocity:55,
+    origin:{x:.5,y:.6},
+    colors:['#3d6af3','#5577ff','#e05c2a','#1e9e60','#f39c12','#e91e63','#9b59b6'],
+    zIndex:800,
+  });
+
+  // Tweede burst iets later vanuit de zijkanten
+  setTimeout(()=>{
+    confettiInstance({particleCount:60,angle:60,spread:70,origin:{x:0,y:.65},colors:['#3d6af3','#f39c12','#27c270'],zIndex:800});
+    confettiInstance({particleCount:60,angle:120,spread:70,origin:{x:1,y:.65},colors:['#e91e63','#5577ff','#e05c2a'],zIndex:800});
+  },200);
+
+  // Fade out na 2.8s
+  setTimeout(()=>{
+    overlay.classList.remove('active');
+    setTimeout(()=>{
+      canvas.style.display='none';
+      confettiInstance.reset();
+    },350);
+  },2800);
+}
 
 // OPSTARTEN
 const saved=getSavedCfg();
