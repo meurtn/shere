@@ -165,6 +165,7 @@
     <div class="form-group">
       <label class="form-label">Wie heeft dit item nu? <span style="color:var(--red)">*</span></label>
       <div class="member-grid" id="toolHolderPicker"></div>
+      <div class="holder-required-msg" id="holderRequiredMsg">Selecteer wie dit item heeft</div>
     </div>
     <button class="btn btn-primary" onclick="saveTool()">Opslaan</button>
     <div style="height:6px"></div>
@@ -260,6 +261,40 @@
       </div>
     </div>
     <button class="btn btn-primary" onclick="saveCategory()">Opslaan</button>
+    <div style="height:6px"></div>
+  </div>
+</div>
+
+<!-- SHEET: LOGBOEK BEHEER -->
+<div class="sheet" id="sheetLogboek">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeAllSheets()">&#x2715;</button>
+  <div class="sheet-header"><div class="sheet-title">Beheer logboek</div></div>
+  <div class="sheet-body">
+    <div id="logboekBeheerList"></div>
+    <div style="height:6px"></div>
+  </div>
+</div>
+
+<!-- SHEET: LOGBOEKREGEL WIJZIGEN -->
+<div class="sheet" id="sheetLogboekEdit">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeLogboekEdit()">&#x2715;</button>
+  <div class="sheet-header"><div class="sheet-title">Activiteit wijzigen</div></div>
+  <div class="sheet-body">
+    <div class="form-group">
+      <label class="form-label">Item</label>
+      <div class="form-input" id="logEditToolName" style="cursor:default;opacity:.6;pointer-events:none"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Actie</label>
+      <div class="tag-list" id="logEditActionPicker"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Wie</label>
+      <div class="member-grid" id="logEditMemberPicker"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveLogboekEdit()">Opslaan</button>
     <div style="height:6px"></div>
   </div>
 </div>

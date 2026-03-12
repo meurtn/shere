@@ -217,6 +217,18 @@ function populateCatSelect(sel){
 window.saveTool=async function(){
   const name=document.getElementById('toolNameInput').value.trim();
   if(!name){showToast('Voer een naam in');return;}
+  // Houder is verplicht bij nieuw item
+  if(!editingToolId&&!toolHolderSel){
+    const picker=document.getElementById('toolHolderPicker');
+    const msg=document.getElementById('holderRequiredMsg');
+    picker.classList.add('holder-picker-error');
+    msg.classList.add('show');
+    picker.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(()=>picker.classList.remove('holder-picker-error'),400);
+    return;
+  }
+  // Verberg foutmelding als al getoond
+  document.getElementById('holderRequiredMsg')?.classList.remove('show');
   const data={
     name,
     category:document.getElementById('toolCatInput').value,
@@ -505,9 +517,15 @@ function renderSettings(){
     <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
   </div>`;
 
+  // Logboek sectie
+  const logboekHTML=`<div style="padding-top:6px">
+    <div class="settings-row" onclick="openLogboekBeheer()"><div class="settings-row-left"><div class="settings-row-icon">📋</div><div class="settings-row-text">Beheer logboek</div></div><div class="settings-row-chevron">›</div></div>
+  </div>`;
+
   document.getElementById('settingsList').innerHTML=
     secHTML('cats','Categorieen',catsHTML)+
     secHTML('familie','Familie',membersHTML)+
+    secHTML('logboek','Logboek',logboekHTML)+
     secHTML('data','Data (alleen voor Maarten)',dataHTML)+
     secHTML('install','App installeren',installHTML)+
     secHTML('connect','Verbinding',connHTML)+
@@ -734,9 +752,116 @@ window.confirmCrop=function(){
   }
 };
 
+// LOGBOEK BEHEER
+let _editingHistoryId=null, _logEditWho=null, _logEditAction='checked out';
+
+window.openLogboekBeheer=function(){
+  renderLogboekBeheerList();
+  openSheet('sheetLogboek');
+};
+
+function renderLogboekBeheerList(){
+  const el=document.getElementById('logboekBeheerList');
+  if(!DB.history.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Geen activiteit</div></div>';
+    return;
+  }
+  el.innerHTML=DB.history.map(h=>{
+    const mem=DB.members.find(m=>m.id===h.who);
+    const icon=h.action==='checked out'?'➡️':'⬅️';
+    const actLabel=h.action==='checked out'?'uitgeleend aan':'teruggegeven door';
+    return`<div class="logboek-item">
+      <div style="font-size:16px;margin-top:2px;flex-shrink:0">${icon}</div>
+      <div class="logboek-item-text">
+        <div class="logboek-item-name">${h.toolName}</div>
+        <div class="logboek-item-meta">${actLabel} ${mem?mem.name:'Onbekend'} - ${fmtDate(h.date)}</div>
+      </div>
+      <div class="logboek-item-actions">
+        <button class="cat-action-btn cat-edit-btn" onclick="openLogboekEdit('${h.id}')">✏️</button>
+        <button class="cat-action-btn cat-delete-btn" onclick="deleteLogboekEntry('${h.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.deleteLogboekEntry=async function(id){
+  if(!confirm('Deze activiteit verwijderen?'))return;
+  try{
+    await deleteDoc(doc(db,'history',id));
+    showToast('Activiteit verwijderd');
+    renderLogboekBeheerList();
+  }catch(e){showToast('Fout: '+e.message);}
+};
+
+window.openLogboekEdit=function(id){
+  const h=DB.history.find(x=>x.id===id);if(!h)return;
+  _editingHistoryId=id;
+  _logEditWho=h.who||null;
+  _logEditAction=h.action||'checked out';
+
+  document.getElementById('logEditToolName').textContent=h.toolName;
+
+  // Actie picker
+  const actions=[
+    {val:'checked out',label:'➡️ Uitgeleend'},
+    {val:'returned',   label:'⬅️ Teruggegeven'},
+  ];
+  document.getElementById('logEditActionPicker').innerHTML=actions.map(a=>
+    `<div class="tag ${_logEditAction===a.val?'selected':''}" onclick="pickLogAction('${a.val}')">${a.label}</div>`
+  ).join('');
+
+  // Lid picker
+  document.getElementById('logEditMemberPicker').innerHTML=DB.members.map(m=>
+    `<div class="member-option ${_logEditWho===m.id?'selected':''}" data-mid="${m.id}" onclick="pickLogMember('${m.id}')">
+      ${memberAvatarHTML(m,'lg')}
+      <div class="member-name-opt">${m.name}</div>
+    </div>`
+  ).join('');
+
+  // Open edit sheet on top (keep logboek sheet open underneath)
+  document.getElementById('sheetLogboekEdit').classList.add('open');
+};
+
+window.closeLogboekEdit=function(){
+  document.getElementById('sheetLogboekEdit').classList.remove('open');
+};
+
+window.pickLogAction=function(val){
+  _logEditAction=val;
+  document.querySelectorAll('#logEditActionPicker .tag').forEach(el=>
+    el.classList.toggle('selected',el.textContent.includes(val==='checked out'?'Uitgeleend':'Teruggegeven'))
+  );
+};
+
+window.pickLogMember=function(id){
+  _logEditWho=id;
+  document.querySelectorAll('#logEditMemberPicker .member-option').forEach(el=>
+    el.classList.toggle('selected',el.dataset.mid===id)
+  );
+};
+
+window.saveLogboekEdit=async function(){
+  if(!_editingHistoryId)return;
+  if(!_logEditWho){showToast('Selecteer een familielid');return;}
+  try{
+    await setDoc(doc(db,'history',_editingHistoryId),{
+      who:_logEditWho,
+      action:_logEditAction,
+    },{merge:true});
+    showToast('Activiteit bijgewerkt');
+    closeLogboekEdit();
+    // Refresh the list - DB update komt via onSnapshot
+    setTimeout(renderLogboekBeheerList,400);
+  }catch(e){showToast('Fout: '+e.message);}
+};
+
 // SHEETS
 window.openSheet=function(id){document.getElementById('overlay').classList.add('open');document.getElementById(id).classList.add('open');};
-window.closeAllSheets=function(){document.getElementById('overlay').classList.remove('open');document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));};
+window.closeAllSheets=function(){
+  document.getElementById('overlay').classList.remove('open');
+  document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));
+  _editingHistoryId=null;
+};
 
 // UTILS
 window.showToast=function(msg){

@@ -368,3 +368,37 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito
 #confettiOverlay.active #confettiMsg{
   transform:scale(1);
 }
+
+/* VERPLICHT VELD - houder picker foutmelding */
+.holder-picker-error{
+  border:2px solid var(--red);
+  border-radius:var(--radius-sm);
+  padding:6px;
+  animation:shake .35s ease;
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-7px)}
+  40%{transform:translateX(7px)}
+  60%{transform:translateX(-5px)}
+  80%{transform:translateX(5px)}
+}
+.holder-required-msg{
+  font-size:11px;
+  color:var(--red);
+  font-weight:700;
+  margin-top:5px;
+  font-family:'Nunito',sans-serif;
+  display:none;
+}
+.holder-required-msg.show{display:block}
+
+/* LOGBOEK BEHEER lijst */
+.logboek-item{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--bg2);border:1.5px solid var(--border-card);border-radius:var(--radius-sm);margin-bottom:5px;box-shadow:var(--shadow)}
+.logboek-item-text{flex:1;min-width:0}
+.logboek-item-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logboek-item-meta{font-size:11px;color:var(--text3);font-weight:500}
+.logboek-item-actions{display:flex;gap:4px;flex-shrink:0;align-items:center}
+
+/* Logboek edit sheet zit boven de logboek beheer sheet */
+#sheetLogboekEdit{z-index:110}
