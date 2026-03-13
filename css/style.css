@@ -228,12 +228,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito
   border:1.5px solid var(--border-card);
   max-height:88dvh;
   opacity:0;
+  pointer-events:none;
   transition:transform .28s cubic-bezier(.32,.72,0,1), opacity .22s ease;
   box-shadow:0 8px 40px rgba(0,0,0,.18);
 }
 #sheetDetail.open{
   transform:translate(-50%,-50%) scale(1);
   opacity:1;
+  pointer-events:auto;
 }
 #sheetDetail .sheet-handle{display:none}
 #sheetDetail .sheet-body{padding:10px 0 0}
