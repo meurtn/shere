@@ -949,11 +949,13 @@ window.openLogboekEdit=function(id){
   ).join('');
 
   // Open edit sheet on top (keep logboek sheet open underneath)
+  document.getElementById('sheetLogboek').classList.add('blurred');
   document.getElementById('sheetLogboekEdit').classList.add('open');
 };
 
 window.closeLogboekEdit=function(){
   document.getElementById('sheetLogboekEdit').classList.remove('open');
+  document.getElementById('sheetLogboek').classList.remove('blurred');
 };
 
 window.pickLogAction=function(val){

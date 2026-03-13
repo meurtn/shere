@@ -498,5 +498,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito
 .cat-order-btn[disabled]{opacity:.25;cursor:default}
 
 /* Creator logo light/dark */
-body.dark-mode .creator-logo-light{display:none !important}
-body:not(.dark-mode) .creator-logo-dark{display:none !important}
+body:not(.dark-mode) .creator-logo-light{display:none !important}
+body.dark-mode .creator-logo-dark{display:none !important}
+
+/* Blur sheetLogboek wanneer edit card eroverheen zit */
+#sheetLogboek.blurred{
+  filter:blur(4px);
+  transition:filter .22s ease;
+}
