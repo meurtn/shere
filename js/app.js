@@ -117,35 +117,36 @@ window.switchView=function(name,el){
   const newView=document.getElementById('view-'+name);
   const goingRight=VIEW_ORDER[name]>VIEW_ORDER[_currentView];
 
-  // Zet nieuwe view klaar aan de juiste kant, onzichtbaar
-  newView.classList.remove('slide-out-left','slide-out-right','active');
-  newView.style.transform=goingRight?'translateX(100%)':'translateX(-30%)';
-  newView.style.visibility='visible';
-  newView.style.pointerEvents='none';
-
   // Render content alvast zodat hij klaarstaat
   ({tools:renderTools,members:renderMembers,history:renderHistory,settings:renderSettings})[name]?.();
 
-  // Forceer reflow zodat startpositie is vastgelegd voor de animatie
+  const DUR='0.30s cubic-bezier(.4,0,.2,1)';
+
+  // Zet beide views in startpositie zonder transitie
+  oldView.style.cssText=`transform:translateX(0);pointer-events:none;transition:none`;
+  newView.style.cssText=`transform:translateX(${goingRight?'100%':'-100%'});pointer-events:none;transition:none`;
+
+  // Forceer reflow zodat de browser de startposities heeft vastgelegd
+  // eslint-disable-next-line no-unused-expressions
   newView.getBoundingClientRect();
 
-  // Start transitie: nieuwe view schuift naar midden, oude schuift weg
-  newView.style.transform='';
-  newView.classList.add('active');
+  // Zet transitie aan en animeer beide tegelijk
+  oldView.style.transition=`transform ${DUR}`;
+  newView.style.transition=`transform ${DUR}`;
 
-  oldView.classList.remove('active');
-  oldView.classList.add(goingRight?'slide-out-left':'slide-out-right');
+  oldView.style.transform=goingRight?'translateX(-100%)':'translateX(100%)';
+  newView.style.transform='translateX(0)';
 
-  // Opruimen na animatie
+  // Na afloop: ruim inline styles op, laat CSS classes de rust-toestand bepalen
   setTimeout(()=>{
-    oldView.classList.remove('slide-out-left','slide-out-right');
-    oldView.style.transform='';
-    newView.style.visibility='';
-    newView.style.pointerEvents='';
-    newView.style.transform='';
-  },340);
+    oldView.style.cssText='';
+    oldView.classList.remove('active');
 
-  // Nav actief-state
+    newView.style.cssText='';
+    newView.classList.add('active');
+  },320);
+
+  // Nav actief-state direct bijwerken
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el)el.classList.add('active');
 
