@@ -121,7 +121,7 @@
 <div class="toast" id="toast"></div>
 
 <!-- SHEET: ITEM TOEVOEGEN/WIJZIGEN -->
-<div class="sheet" id="sheetTool">
+<div class="sheet sheet-float" id="sheetTool">
   <div class="sheet-handle"></div>
   <button class="sheet-close" onclick="closeAllSheets()">✕</button>
   <div class="sheet-header"><div class="sheet-title" id="sheetToolTitle">Item toevoegen</div></div>
@@ -208,7 +208,7 @@
 </div>
 
 <!-- SHEET: LID TOEVOEGEN/WIJZIGEN -->
-<div class="sheet" id="sheetMember">
+<div class="sheet sheet-float" id="sheetMember">
   <div class="sheet-handle"></div>
   <button class="sheet-close" onclick="closeAllSheets()">✕</button>
   <div class="sheet-header"><div class="sheet-title" id="sheetMemberTitle">Lid toevoegen</div></div>
@@ -244,7 +244,7 @@
 </div>
 
 <!-- SHEET: CATEGORIE TOEVOEGEN/WIJZIGEN -->
-<div class="sheet" id="sheetCategory">
+<div class="sheet sheet-float" id="sheetCategory">
   <div class="sheet-handle"></div>
   <button class="sheet-close" onclick="closeAllSheets()">✕</button>
   <div class="sheet-header"><div class="sheet-title" id="sheetCatTitle">Categorie toevoegen</div></div>
@@ -332,6 +332,18 @@
   </div>
 </div>
 
+
+<!-- CUSTOM CONFIRM DIALOG -->
+<div id="confirmDialog">
+  <div class="confirm-card">
+    <div class="confirm-icon" id="confirmIcon">🗑️</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="btn btn-ghost" style="flex:1" onclick="appConfirmCancel()">Annuleren</button>
+      <button class="btn btn-danger" style="flex:1;margin-top:0" id="confirmOkBtn" onclick="appConfirmOk()">Verwijderen</button>
+    </div>
+  </div>
+</div>
 <!-- CONFETTI ANIMATIE -->
 <div id="confettiOverlay">
   <div id="confettiMsg">Bedankt voor het toevoegen! &#x1F609;</div>

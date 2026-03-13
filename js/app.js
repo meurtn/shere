@@ -308,12 +308,13 @@ window.saveTool=async function(){
   }catch(e){showToast('Fout: '+e.message);setSyncStatus('red','Fout');}
 };
 window.removeToolPhoto=function(){photoData=null;document.getElementById('photoPreview').style.display='none';document.getElementById('removeToolPhotoBtn').style.display='none';};
-window.deleteCurrentTool=async function(){
+window.deleteCurrentTool=function(){
   if(!detailToolId)return;
   const t=DB.tools.find(x=>x.id===detailToolId);
-  if(!confirm(`"${t?.name}" definitief verwijderen?`))return;
-  try{await deleteDoc(doc(db,'tools',detailToolId));closeAllSheets();showToast('Item verwijderd');}
-  catch(e){showToast('Fout: '+e.message);}
+  appConfirm(`"${t?.name}" definitief verwijderen?`,async()=>{
+    try{await deleteDoc(doc(db,'tools',detailToolId));closeAllSheets();showToast('Item verwijderd');}
+    catch(e){showToast('Fout: '+e.message);}
+  });
 };
 
 // TOOL DETAIL
@@ -445,14 +446,15 @@ window.saveMember=async function(){
     setTimeout(()=>renderSettings(),200);
   }catch(e){showToast('Fout: '+e.message);}
 };
-window.deleteMember=async function(){
+window.deleteMember=function(){
   if(!editingMemberId)return;
   const m=DB.members.find(x=>x.id===editingMemberId);
   const cnt=DB.tools.filter(t=>t.holder===editingMemberId).length;
   if(cnt>0){showToast(`${m.name} heeft nog ${cnt} item(s)`);return;}
-  if(!confirm(`${m.name} verwijderen?`))return;
-  try{await deleteDoc(doc(db,'members',editingMemberId));closeAllSheets();showToast('Lid verwijderd');setTimeout(()=>renderSettings(),200);}
-  catch(e){showToast('Fout: '+e.message);}
+  appConfirm(`${m.name} verwijderen?`,async()=>{
+    try{await deleteDoc(doc(db,'members',editingMemberId));closeAllSheets();showToast('Lid verwijderd');setTimeout(()=>renderSettings(),200);}
+    catch(e){showToast('Fout: '+e.message);}
+  },{icon:'👤'});
 };
 window.showMemberTools=function(mid){
   const m=DB.members.find(x=>x.id===mid);
@@ -581,6 +583,10 @@ function renderSettings(){
   // Over sectie
   const aboutHTML=`<div style="padding-top:6px">
     <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
+    <div style="padding:14px 4px 6px;display:flex;justify-content:center">
+      <img src="icons/creator_logo_black.png" class="creator-logo creator-logo-light" alt="creator" style="height:40px;width:auto;display:block">
+      <img src="icons/creator_logo_white.png" class="creator-logo creator-logo-dark" alt="creator" style="height:40px;width:auto;display:none">
+    </div>
   </div>`;
 
   // Logboek sectie
@@ -608,13 +614,14 @@ function renderSettings(){
   }
 }
 
-window.deleteMemberDirect=async function(id){
+window.deleteMemberDirect=function(id){
   const m=DB.members.find(x=>x.id===id);if(!m)return;
   const cnt=DB.tools.filter(t=>t.holder===id).length;
   if(cnt>0){showToast(`${m.name} heeft nog ${cnt} item(s)`);return;}
-  if(!confirm(`${m.name} verwijderen?`))return;
-  try{await deleteDoc(doc(db,'members',id));showToast('Lid verwijderd');}
-  catch(e){showToast('Fout: '+e.message);}
+  appConfirm(`${m.name} verwijderen?`,async()=>{
+    try{await deleteDoc(doc(db,'members',id));showToast('Lid verwijderd');}
+    catch(e){showToast('Fout: '+e.message);}
+  },{icon:'👤'});
 };
 
 window.openAddCategorySheet=function(){
@@ -650,12 +657,13 @@ window.saveCategory=async function(){
     closeAllSheets();
   }catch(e){showToast('Fout: '+e.message);}
 };
-window.deleteCategory=async function(id){
+window.deleteCategory=function(id){
   if(DB.tools.some(t=>t.category===id)){showToast('Er zijn nog items gekoppeld aan deze categorie');return;}
   const c=DB.categories.find(x=>x.id===id);
-  if(!confirm(`Categorie "${c?.name}" verwijderen?`))return;
-  try{await deleteDoc(doc(db,'categories',id));showToast('Categorie verwijderd');}
-  catch(e){showToast('Fout: '+e.message);}
+  appConfirm(`Categorie "${c?.name}" verwijderen?`,async()=>{
+    try{await deleteDoc(doc(db,'categories',id));showToast('Categorie verwijderd');}
+    catch(e){showToast('Fout: '+e.message);}
+  },{icon:'🗂️'});
 };
 
 window.moveCat=async function(id,dir){
@@ -677,12 +685,13 @@ window.exportData=function(){
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='shere-backup.json';a.click();
   showToast('Geexporteerd!');
 };
-window.doClearHistory=async function(){
-  if(!confirm('Alle geschiedenis verwijderen? Dit kan niet ongedaan worden gemaakt.'))return;
-  try{const batch=writeBatch(db);(await getDocs(collection(db,'history'))).forEach(d=>batch.delete(d.ref));await batch.commit();showToast('Geschiedenis gewist');}
-  catch(e){showToast('Fout: '+e.message);}
+window.doClearHistory=function(){
+  appConfirm('Alle geschiedenis verwijderen? Dit kan niet ongedaan worden gemaakt.',async()=>{
+    try{const batch=writeBatch(db);(await getDocs(collection(db,'history'))).forEach(d=>batch.delete(d.ref));await batch.commit();showToast('Geschiedenis gewist');}
+    catch(e){showToast('Fout: '+e.message);}
+  },{icon:'🗑️',okLabel:'Alles wissen',okDanger:true});
 };
-window.resetCfg=function(){if(!confirm('Firebase config resetten? De app herlaadt.'))return;localStorage.removeItem(CFG_KEY);location.reload();};
+window.resetCfg=function(){appConfirm('Firebase config resetten? De app herlaadt.',()=>{localStorage.removeItem(CFG_KEY);location.reload();},{icon:'🔥',okLabel:'Resetten',okDanger:true});};
 
 // EMOJI PICKER (WhatsApp-stijl)
 window.openEmojiPicker=function(target){
@@ -904,13 +913,14 @@ function renderLogboekBeheerList(){
   }).join('');
 }
 
-window.deleteLogboekEntry=async function(id){
-  if(!confirm('Deze activiteit verwijderen?'))return;
-  try{
-    await deleteDoc(doc(db,'history',id));
-    showToast('Activiteit verwijderd');
-    renderLogboekBeheerList();
-  }catch(e){showToast('Fout: '+e.message);}
+window.deleteLogboekEntry=function(id){
+  appConfirm('Deze activiteit verwijderen?',async()=>{
+    try{
+      await deleteDoc(doc(db,'history',id));
+      showToast('Activiteit verwijderd');
+      renderLogboekBeheerList();
+    }catch(e){showToast('Fout: '+e.message);}
+  });
 };
 
 window.openLogboekEdit=function(id){
@@ -973,6 +983,27 @@ window.saveLogboekEdit=async function(){
     // Refresh the list - DB update komt via onSnapshot
     setTimeout(renderLogboekBeheerList,400);
   }catch(e){showToast('Fout: '+e.message);}
+};
+
+// CUSTOM CONFIRM DIALOG (vervangt browser confirm())
+let _confirmCallback=null;
+window.appConfirm=function(msg,onOk,{icon='🗑️',okLabel='Verwijderen',okDanger=true}={}){
+  document.getElementById('confirmMsg').textContent=msg;
+  document.getElementById('confirmIcon').textContent=icon;
+  const okBtn=document.getElementById('confirmOkBtn');
+  okBtn.textContent=okLabel;
+  okBtn.className='btn '+(okDanger?'btn-danger':'btn-primary');
+  okBtn.style.cssText='flex:1;margin-top:0';
+  _confirmCallback=onOk;
+  document.getElementById('confirmDialog').classList.add('open');
+};
+window.appConfirmOk=function(){
+  document.getElementById('confirmDialog').classList.remove('open');
+  if(_confirmCallback){_confirmCallback();_confirmCallback=null;}
+};
+window.appConfirmCancel=function(){
+  document.getElementById('confirmDialog').classList.remove('open');
+  _confirmCallback=null;
 };
 
 // SHEETS
