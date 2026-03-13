@@ -513,3 +513,9 @@ body.dark-mode .creator-logo-show-dark{display:block}
   filter:blur(4px);
   transition:filter .22s ease;
 }
+
+/* Header logo icon */
+.header-logo{height:40px;width:auto;display:block}
+.header-logo-dark{display:none}
+body.dark-mode .header-logo-light{display:none}
+body.dark-mode .header-logo-dark{display:block}
