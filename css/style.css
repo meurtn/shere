@@ -515,7 +515,7 @@ body.dark-mode .creator-logo-show-dark{display:block}
 }
 
 /* Header logo icon */
-.header-logo{height:40px;width:auto;display:block}
+.header-logo{height:27px;width:auto;display:block}
 .header-logo-dark{display:none}
 body.dark-mode .header-logo-light{display:none}
 body.dark-mode .header-logo-dark{display:block}
