@@ -305,22 +305,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito
 .collapsible-body.open{display:block}
 .settings-section.sec-open .collapsible-header{border-radius:var(--radius-sm) var(--radius-sm) 0 0}
 
-/* VIEWS - slide animatie */
+/* VIEWS */
 #app{position:relative}
-.view{
+.view{display:none;flex-direction:column;height:100%;overflow:hidden}
+.view.active{display:flex}
+
+/* Tijdens slide-animatie tijdelijk absoluut gepositioneerd */
+.view.is-animating{
   position:absolute;
   inset:0;
   display:flex;
-  flex-direction:column;
-  height:100%;
-  background:var(--bg);
-  transform:translateX(100%);
-  pointer-events:none;
-  overflow:hidden;
-}
-.view.active{
-  transform:translateX(0);
-  pointer-events:auto;
+  will-change:transform;
 }
 .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:40px;text-align:center}
 .empty-icon{font-size:50px;opacity:.3}

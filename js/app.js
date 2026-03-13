@@ -109,44 +109,54 @@ function refreshActive(views){
 // VIEWS - slide animatie
 const VIEW_ORDER={tools:0,members:1,history:2,settings:3};
 let _currentView='tools';
+let _animating=false;
 
 window.switchView=function(name,el){
-  if(name===_currentView)return;
+  if(name===_currentView||_animating)return;
 
   const oldView=document.getElementById('view-'+_currentView);
   const newView=document.getElementById('view-'+name);
   const goingRight=VIEW_ORDER[name]>VIEW_ORDER[_currentView];
 
-  // Render content alvast zodat hij klaarstaat
+  // Render content alvast
   ({tools:renderTools,members:renderMembers,history:renderHistory,settings:renderSettings})[name]?.();
 
-  const DUR='0.30s cubic-bezier(.4,0,.2,1)';
+  _animating=true;
+  const DUR=300;
+  const EASE='cubic-bezier(.4,0,.2,1)';
 
-  // Zet beide views in startpositie zonder transitie
-  oldView.style.cssText=`transform:translateX(0);pointer-events:none;transition:none`;
-  newView.style.cssText=`transform:translateX(${goingRight?'100%':'-100%'});pointer-events:none;transition:none`;
+  // Beide views absoluut positioneren voor animatie
+  oldView.classList.add('is-animating');
+  newView.classList.add('is-animating');
 
-  // Forceer reflow zodat de browser de startposities heeft vastgelegd
-  // eslint-disable-next-line no-unused-expressions
+  // Startposities instellen zonder transitie
+  oldView.style.transition='none';
+  oldView.style.transform='translateX(0)';
+  newView.style.transition='none';
+  newView.style.transform=goingRight?'translateX(100%)':'translateX(-100%)';
+
+  // Forceer reflow
   newView.getBoundingClientRect();
 
-  // Zet transitie aan en animeer beide tegelijk
-  oldView.style.transition=`transform ${DUR}`;
-  newView.style.transition=`transform ${DUR}`;
-
+  // Animeer beiden tegelijk
+  oldView.style.transition=`transform ${DUR}ms ${EASE}`;
+  newView.style.transition=`transform ${DUR}ms ${EASE}`;
   oldView.style.transform=goingRight?'translateX(-100%)':'translateX(100%)';
   newView.style.transform='translateX(0)';
 
-  // Na afloop: ruim inline styles op, laat CSS classes de rust-toestand bepalen
+  // Na animatie: terug naar normale display-flow
   setTimeout(()=>{
+    oldView.classList.remove('is-animating','active');
     oldView.style.cssText='';
-    oldView.classList.remove('active');
 
-    newView.style.cssText='';
+    newView.classList.remove('is-animating');
     newView.classList.add('active');
-  },320);
+    newView.style.cssText='';
 
-  // Nav actief-state direct bijwerken
+    _animating=false;
+  },DUR+10);
+
+  // Nav meteen bijwerken
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el)el.classList.add('active');
 
