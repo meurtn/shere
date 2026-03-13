@@ -164,7 +164,6 @@ function toolCard(tool){
     </div>
     <div class="tool-member-right">
       ${memberAvatarHTML(m,'sm')}
-      <div class="member-name-small">${m?m.name:'-'}</div>
     </div>
   </div>`;
 }
@@ -703,28 +702,60 @@ function clampCrop(){
   _crop.x=Math.min(0,Math.max(minX,_crop.x));
   _crop.y=Math.min(0,Math.max(minY,_crop.y));
 }
+let _cropAbort=null;
 function setupCropEvents(){
-  const old=document.getElementById('cropViewport');
-  const fresh=old.cloneNode(true);
-  fresh.appendChild(document.getElementById('cropImg'));
-  old.parentNode.replaceChild(fresh,old);
+  // Breek eventuele vorige listeners af (geen cloneNode nodig - vermijdt duplicate ID bug)
+  if(_cropAbort)_cropAbort.abort();
+  _cropAbort=new AbortController();
+  const sig=_cropAbort.signal;
+  const vp=document.getElementById('cropViewport');
+
   let dragging=false,lastMX=0,lastMY=0;
-  fresh.addEventListener('mousedown',e=>{dragging=true;lastMX=e.clientX;lastMY=e.clientY;});
-  fresh.addEventListener('mousemove',e=>{if(!dragging)return;_crop.x+=e.clientX-lastMX;_crop.y+=e.clientY-lastMY;lastMX=e.clientX;lastMY=e.clientY;clampCrop();applyCropTransform();});
-  fresh.addEventListener('mouseup',()=>dragging=false);
-  fresh.addEventListener('mouseleave',()=>dragging=false);
-  let t1=null,t2=null;
-  fresh.addEventListener('touchstart',e=>{
+  vp.addEventListener('mousedown',e=>{dragging=true;lastMX=e.clientX;lastMY=e.clientY;},{signal:sig});
+  vp.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    _crop.x+=e.clientX-lastMX;_crop.y+=e.clientY-lastMY;
+    lastMX=e.clientX;lastMY=e.clientY;
+    clampCrop();applyCropTransform();
+  },{signal:sig});
+  vp.addEventListener('mouseup',()=>{dragging=false;},{signal:sig});
+  vp.addEventListener('mouseleave',()=>{dragging=false;},{signal:sig});
+
+  vp.addEventListener('touchstart',e=>{
     e.preventDefault();
-    if(e.touches.length===1){t1={x:e.touches[0].clientX,y:e.touches[0].clientY};_cropTouch.lastX=t1.x;_cropTouch.lastY=t1.y;}
-    if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;_cropTouch.startDist=Math.sqrt(dx*dx+dy*dy);_cropTouch.startScale=_crop.scale;}
-  },{passive:false});
-  fresh.addEventListener('touchmove',e=>{
+    if(e.touches.length===1){
+      _cropTouch.lastX=e.touches[0].clientX;
+      _cropTouch.lastY=e.touches[0].clientY;
+    }
+    if(e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      _cropTouch.startDist=Math.sqrt(dx*dx+dy*dy);
+      _cropTouch.startScale=_crop.scale;
+    }
+  },{passive:false,signal:sig});
+
+  vp.addEventListener('touchmove',e=>{
     e.preventDefault();
-    if(e.touches.length===1){const dx=e.touches[0].clientX-_cropTouch.lastX,dy=e.touches[0].clientY-_cropTouch.lastY;_crop.x+=dx;_crop.y+=dy;_cropTouch.lastX=e.touches[0].clientX;_cropTouch.lastY=e.touches[0].clientY;clampCrop();applyCropTransform();}
-    if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;const dist=Math.sqrt(dx*dx+dy*dy);const newScale=_cropTouch.startScale*(dist/_cropTouch.startDist);_crop.scale=Math.max(Math.max(_crop.vw/_crop.iw,_crop.vh/_crop.ih),newScale);clampCrop();applyCropTransform();}
-  },{passive:false});
-  fresh.addEventListener('touchend',()=>{t1=null;t2=null;});
+    if(e.touches.length===1){
+      const dx=e.touches[0].clientX-_cropTouch.lastX;
+      const dy=e.touches[0].clientY-_cropTouch.lastY;
+      _crop.x+=dx;_crop.y+=dy;
+      _cropTouch.lastX=e.touches[0].clientX;
+      _cropTouch.lastY=e.touches[0].clientY;
+      clampCrop();applyCropTransform();
+    }
+    if(e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      const minScale=Math.max(_crop.vw/_crop.iw,_crop.vh/_crop.ih);
+      _crop.scale=Math.max(minScale,_cropTouch.startScale*(dist/_cropTouch.startDist));
+      clampCrop();applyCropTransform();
+    }
+  },{passive:false,signal:sig});
+
+  vp.addEventListener('touchend',()=>{},{signal:sig});
 }
 window.cancelCrop=function(){document.getElementById('cropModal').classList.remove('open');};
 window.confirmCrop=function(){
