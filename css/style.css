@@ -284,9 +284,35 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito
 .collapsible-body.open{display:block}
 .settings-section.sec-open .collapsible-header{border-radius:var(--radius-sm) var(--radius-sm) 0 0}
 
-/* VIEWS */
-.view{display:none;flex-direction:column;height:100%}
-.view.active{display:flex}
+/* VIEWS - slide animatie */
+#app{position:relative}
+.view{
+  position:absolute;
+  inset:0;
+  bottom:0;
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  background:var(--bg);
+  transform:translateX(100%);
+  transition:transform .32s cubic-bezier(.4,0,.2,1);
+  will-change:transform;
+  pointer-events:none;
+  visibility:hidden;
+}
+.view.active{
+  transform:translateX(0);
+  pointer-events:auto;
+  visibility:visible;
+}
+.view.slide-out-left{
+  transform:translateX(-30%);
+  pointer-events:none;
+}
+.view.slide-out-right{
+  transform:translateX(100%);
+  pointer-events:none;
+}
 .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:40px;text-align:center}
 .empty-icon{font-size:50px;opacity:.3}
 .empty-title{font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;color:var(--text2)}
@@ -402,3 +428,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito
 
 /* Logboek edit sheet zit boven de logboek beheer sheet */
 #sheetLogboekEdit{z-index:110}
+
+/* Categorie volgorde knoppen */
+.cat-order-btns{display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+.cat-order-btn{width:22px;height:18px;border-radius:4px;border:1.5px solid var(--border);background:var(--bg3);color:var(--text3);font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0;line-height:1}
+.cat-order-btn:not([disabled]):active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+.cat-order-btn[disabled]{opacity:.25;cursor:default}

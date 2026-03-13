@@ -97,8 +97,8 @@ function listenAll(){
   onSnapshot(query(collection(db,'history'),orderBy('date','desc'),limit(200)),snap=>{DB.history=snap.docs.map(d=>({id:d.id,...d.data()}));loaded.history=true;tryReveal();refreshActive(['history']);});
 }
 async function seedCats(){
-  await setDoc(doc(db,'categories','power'),{name:'Gereedschap',icon:'⚡'});
-  await setDoc(doc(db,'categories','garden'),{name:'Tuin',icon:'🌱'});
+  await setDoc(doc(db,'categories','power'),{name:'Gereedschap',icon:'⚡',order:0});
+  await setDoc(doc(db,'categories','garden'),{name:'Tuin',icon:'🌱',order:1});
 }
 function refreshActive(views){
   const active=document.querySelector('.view.active')?.id.replace('view-','');
@@ -106,20 +106,65 @@ function refreshActive(views){
   ({tools:renderTools,members:renderMembers,history:renderHistory,settings:renderSettings})[active]?.();
 }
 
-// VIEWS
+// VIEWS - slide animatie
+const VIEW_ORDER={tools:0,members:1,history:2,settings:3};
+let _currentView='tools';
+
 window.switchView=function(name,el){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
-  if(el)el.classList.add('active');
+  if(name===_currentView)return;
+
+  const oldView=document.getElementById('view-'+_currentView);
+  const newView=document.getElementById('view-'+name);
+  const goingRight=VIEW_ORDER[name]>VIEW_ORDER[_currentView];
+
+  // Zet nieuwe view klaar aan de juiste kant, onzichtbaar
+  newView.classList.remove('slide-out-left','slide-out-right','active');
+  newView.style.transform=goingRight?'translateX(100%)':'translateX(-30%)';
+  newView.style.visibility='visible';
+  newView.style.pointerEvents='none';
+
+  // Render content alvast zodat hij klaarstaat
   ({tools:renderTools,members:renderMembers,history:renderHistory,settings:renderSettings})[name]?.();
+
+  // Forceer reflow zodat startpositie is vastgelegd voor de animatie
+  newView.getBoundingClientRect();
+
+  // Start transitie: nieuwe view schuift naar midden, oude schuift weg
+  newView.style.transform='';
+  newView.classList.add('active');
+
+  oldView.classList.remove('active');
+  oldView.classList.add(goingRight?'slide-out-left':'slide-out-right');
+
+  // Opruimen na animatie
+  setTimeout(()=>{
+    oldView.classList.remove('slide-out-left','slide-out-right');
+    oldView.style.transform='';
+    newView.style.visibility='';
+    newView.style.pointerEvents='';
+    newView.style.transform='';
+  },340);
+
+  // Nav actief-state
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+
+  _currentView=name;
 };
 
 // TOOLS
+// Sorteert categorieën op order-veld, daarna alfabetisch als fallback
+function sortedCats(){
+  return [...DB.categories].sort((a,b)=>{
+    const ao=a.order??999, bo=b.order??999;
+    if(ao!==bo)return ao-bo;
+    return a.name.localeCompare(b.name,'nl');
+  });
+}
+
 function renderCatChips(){
-  const sortedCats=[...DB.categories].sort((a,b)=>a.name.localeCompare(b.name,'nl'));
   document.getElementById('categoryChips').innerHTML=
-    [{id:'all',name:'Alles',icon:'📦'},...sortedCats].map(c=>{
+    [{id:'all',name:'Alles',icon:'📦'},...sortedCats()].map(c=>{
       const isAlles=c.id==='all';
       const isActive=selectedCategory===c.id;
       const classes=['cat-chip',isActive?'active':'',isAlles?'alles':''].filter(Boolean).join(' ');
@@ -164,7 +209,6 @@ function toolCard(tool){
     </div>
     <div class="tool-member-right">
       ${memberAvatarHTML(m,'sm')}
-      <div class="member-name-small">${m?m.name:'-'}</div>
     </div>
   </div>`;
 }
@@ -210,7 +254,7 @@ window.pickToolHolder=function(id){
   document.querySelectorAll('#toolHolderPicker .member-option').forEach(el=>el.classList.toggle('selected',el.dataset.hid===id));
 };
 function populateCatSelect(sel){
-  document.getElementById('toolCatInput').innerHTML=DB.categories.map(c=>
+  document.getElementById('toolCatInput').innerHTML=sortedCats().map(c=>
     `<option value="${c.id}" ${c.id===sel?'selected':''}>${c.icon} ${c.name}</option>`).join('');
 }
 
@@ -404,10 +448,16 @@ window.showMemberTools=function(mid){
   const tools=[...DB.tools.filter(t=>t.holder===mid)].sort((a,b)=>a.name.localeCompare(b.name,'nl'));
   if(!tools.length){showToast(`${m.name} heeft geen items`);return;}
   selectedCategory='all';document.getElementById('searchInput').value='';
-  switchView('tools',document.querySelector('.nav-item'));
-  renderCatChips();
-  document.getElementById('toolCountBar').innerHTML=`<div class="tool-count-pill"><span class="tool-count-num">${tools.length}</span>&nbsp;items van ${m.name}</div>`;
-  document.getElementById('toolsList').innerHTML=tools.map(toolCard).join('');
+  // Navigeer naar Items tab met slide-animatie
+  const navEl=document.querySelector('.nav-item[onclick*="tools"]');
+  closeAllSheets();
+  switchView('tools',navEl);
+  // Overschrijf na switchView met gefilterde lijst
+  setTimeout(()=>{
+    renderCatChips();
+    document.getElementById('toolCountBar').innerHTML=`<div class="tool-count-pill"><span class="tool-count-num">${tools.length}</span>&nbsp;items van ${m.name}</div>`;
+    document.getElementById('toolsList').innerHTML=tools.map(toolCard).join('');
+  },50);
 };
 
 // LOGBOEK
@@ -459,10 +509,15 @@ function secHTML(id,title,bodyContent){
 }
 
 function renderSettings(){
-  // Categorieeen sectie
+  // Categorieeen sectie - gesorteerd op order, met pijltjes voor herordenen
+  const cats=sortedCats();
   const catsHTML=`<div style="padding-top:6px">
-    ${[...DB.categories].sort((a,b)=>a.name.localeCompare(b.name,'nl')).map(c=>`
+    ${cats.map((c,i)=>`
       <div class="cat-manage-item">
+        <div class="cat-order-btns">
+          <button class="cat-order-btn" onclick="moveCat('${c.id}',-1)" ${i===0?'disabled':''}>▲</button>
+          <button class="cat-order-btn" onclick="moveCat('${c.id}',1)" ${i===cats.length-1?'disabled':''}>▼</button>
+        </div>
         <div class="cat-icon">${c.icon}</div>
         <div class="cat-name">${c.name}</div>
         <div class="cat-action-btns">
@@ -572,8 +627,15 @@ window.saveCategory=async function(){
   const name=document.getElementById('catNameInput').value.trim();
   if(!name){showToast('Voer een naam in');return;}
   try{
-    if(editingCatId){await setDoc(doc(db,'categories',editingCatId),{name,icon:selectedCatEmoji},{merge:true});showToast('Categorie bijgewerkt');}
-    else{const id=name.toLowerCase().replace(/\s+/g,'_')+'_'+Date.now();await setDoc(doc(db,'categories',id),{name,icon:selectedCatEmoji});showToast('Categorie toegevoegd');}
+    if(editingCatId){
+      await setDoc(doc(db,'categories',editingCatId),{name,icon:selectedCatEmoji},{merge:true});
+      showToast('Categorie bijgewerkt');
+    }else{
+      const newOrder=DB.categories.length; // achteraan
+      const id=name.toLowerCase().replace(/\s+/g,'_')+'_'+Date.now();
+      await setDoc(doc(db,'categories',id),{name,icon:selectedCatEmoji,order:newOrder});
+      showToast('Categorie toegevoegd');
+    }
     closeAllSheets();
   }catch(e){showToast('Fout: '+e.message);}
 };
@@ -583,6 +645,21 @@ window.deleteCategory=async function(id){
   if(!confirm(`Categorie "${c?.name}" verwijderen?`))return;
   try{await deleteDoc(doc(db,'categories',id));showToast('Categorie verwijderd');}
   catch(e){showToast('Fout: '+e.message);}
+};
+
+window.moveCat=async function(id,dir){
+  const cats=sortedCats();
+  const idx=cats.findIndex(c=>c.id===id);
+  const swapIdx=idx+dir;
+  if(swapIdx<0||swapIdx>=cats.length)return;
+  // Wissel posities en schrijf nieuwe order-waarden voor alle categorieën
+  const reordered=[...cats];
+  [reordered[idx],reordered[swapIdx]]=[reordered[swapIdx],reordered[idx]];
+  try{
+    const batch=writeBatch(db);
+    reordered.forEach((c,i)=>batch.update(doc(db,'categories',c.id),{order:i}));
+    await batch.commit();
+  }catch(e){showToast('Fout: '+e.message);}
 };
 window.exportData=function(){
   const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
@@ -703,28 +780,60 @@ function clampCrop(){
   _crop.x=Math.min(0,Math.max(minX,_crop.x));
   _crop.y=Math.min(0,Math.max(minY,_crop.y));
 }
+let _cropAbort=null;
 function setupCropEvents(){
-  const old=document.getElementById('cropViewport');
-  const fresh=old.cloneNode(true);
-  fresh.appendChild(document.getElementById('cropImg'));
-  old.parentNode.replaceChild(fresh,old);
+  // Breek eventuele vorige listeners af (geen cloneNode nodig - vermijdt duplicate ID bug)
+  if(_cropAbort)_cropAbort.abort();
+  _cropAbort=new AbortController();
+  const sig=_cropAbort.signal;
+  const vp=document.getElementById('cropViewport');
+
   let dragging=false,lastMX=0,lastMY=0;
-  fresh.addEventListener('mousedown',e=>{dragging=true;lastMX=e.clientX;lastMY=e.clientY;});
-  fresh.addEventListener('mousemove',e=>{if(!dragging)return;_crop.x+=e.clientX-lastMX;_crop.y+=e.clientY-lastMY;lastMX=e.clientX;lastMY=e.clientY;clampCrop();applyCropTransform();});
-  fresh.addEventListener('mouseup',()=>dragging=false);
-  fresh.addEventListener('mouseleave',()=>dragging=false);
-  let t1=null,t2=null;
-  fresh.addEventListener('touchstart',e=>{
+  vp.addEventListener('mousedown',e=>{dragging=true;lastMX=e.clientX;lastMY=e.clientY;},{signal:sig});
+  vp.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    _crop.x+=e.clientX-lastMX;_crop.y+=e.clientY-lastMY;
+    lastMX=e.clientX;lastMY=e.clientY;
+    clampCrop();applyCropTransform();
+  },{signal:sig});
+  vp.addEventListener('mouseup',()=>{dragging=false;},{signal:sig});
+  vp.addEventListener('mouseleave',()=>{dragging=false;},{signal:sig});
+
+  vp.addEventListener('touchstart',e=>{
     e.preventDefault();
-    if(e.touches.length===1){t1={x:e.touches[0].clientX,y:e.touches[0].clientY};_cropTouch.lastX=t1.x;_cropTouch.lastY=t1.y;}
-    if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;_cropTouch.startDist=Math.sqrt(dx*dx+dy*dy);_cropTouch.startScale=_crop.scale;}
-  },{passive:false});
-  fresh.addEventListener('touchmove',e=>{
+    if(e.touches.length===1){
+      _cropTouch.lastX=e.touches[0].clientX;
+      _cropTouch.lastY=e.touches[0].clientY;
+    }
+    if(e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      _cropTouch.startDist=Math.sqrt(dx*dx+dy*dy);
+      _cropTouch.startScale=_crop.scale;
+    }
+  },{passive:false,signal:sig});
+
+  vp.addEventListener('touchmove',e=>{
     e.preventDefault();
-    if(e.touches.length===1){const dx=e.touches[0].clientX-_cropTouch.lastX,dy=e.touches[0].clientY-_cropTouch.lastY;_crop.x+=dx;_crop.y+=dy;_cropTouch.lastX=e.touches[0].clientX;_cropTouch.lastY=e.touches[0].clientY;clampCrop();applyCropTransform();}
-    if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;const dist=Math.sqrt(dx*dx+dy*dy);const newScale=_cropTouch.startScale*(dist/_cropTouch.startDist);_crop.scale=Math.max(Math.max(_crop.vw/_crop.iw,_crop.vh/_crop.ih),newScale);clampCrop();applyCropTransform();}
-  },{passive:false});
-  fresh.addEventListener('touchend',()=>{t1=null;t2=null;});
+    if(e.touches.length===1){
+      const dx=e.touches[0].clientX-_cropTouch.lastX;
+      const dy=e.touches[0].clientY-_cropTouch.lastY;
+      _crop.x+=dx;_crop.y+=dy;
+      _cropTouch.lastX=e.touches[0].clientX;
+      _cropTouch.lastY=e.touches[0].clientY;
+      clampCrop();applyCropTransform();
+    }
+    if(e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      const minScale=Math.max(_crop.vw/_crop.iw,_crop.vh/_crop.ih);
+      _crop.scale=Math.max(minScale,_cropTouch.startScale*(dist/_cropTouch.startDist));
+      clampCrop();applyCropTransform();
+    }
+  },{passive:false,signal:sig});
+
+  vp.addEventListener('touchend',()=>{},{signal:sig});
 }
 window.cancelCrop=function(){document.getElementById('cropModal').classList.remove('open');};
 window.confirmCrop=function(){
