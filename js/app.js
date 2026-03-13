@@ -583,10 +583,6 @@ function renderSettings(){
   // Over sectie
   const aboutHTML=`<div style="padding-top:6px">
     <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
-    <div style="padding:14px 4px 6px;display:flex;justify-content:center">
-      <img src="icons/creator_logo_black.png" class="creator-logo creator-logo-light" alt="creator" style="height:40px;width:auto;display:block">
-      <img src="icons/creator_logo_white.png" class="creator-logo creator-logo-dark" alt="creator" style="height:40px;width:auto;display:none">
-    </div>
   </div>`;
 
   // Logboek sectie

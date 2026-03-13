@@ -497,9 +497,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito
 .cat-order-btn:not([disabled]):active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
 .cat-order-btn[disabled]{opacity:.25;cursor:default}
 
-/* Creator logo light/dark */
-body:not(.dark-mode) .creator-logo-light{display:none !important}
-body.dark-mode .creator-logo-dark{display:none !important}
+/* Creator logo - permanent onder instellingen */
+.creator-logo-wrap{
+  display:flex;justify-content:center;
+  padding:16px 0 28px;
+  flex-shrink:0;
+}
+.creator-logo-wrap img{height:40px;width:auto}
+.creator-logo-show-dark{display:none}
+body.dark-mode .creator-logo-show-light{display:none}
+body.dark-mode .creator-logo-show-dark{display:block}
 
 /* Blur sheetLogboek wanneer edit card eroverheen zit */
 #sheetLogboek.blurred{
