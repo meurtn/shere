@@ -597,7 +597,11 @@ function renderSettings(){
     secHTML('data','Data (alleen voor Maarten)',dataHTML)+
     secHTML('install','App installeren',installHTML)+
     secHTML('connect','Verbinding',connHTML)+
-    secHTML('about','Over',aboutHTML);
+    secHTML('about','Over',aboutHTML)+
+    `<div class="creator-logo-wrap">
+      <img src="icons/creator_logo_white.png" class="creator-logo-show-light" alt="">
+      <img src="icons/creator_logo_black.png" class="creator-logo-show-dark" alt="">
+    </div>`;
 
   // herstel open sectie na re-render
   if(_openSection){
