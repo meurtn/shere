@@ -503,7 +503,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito
   padding:16px 0 28px;
   flex-shrink:0;
 }
-.creator-logo-wrap img{height:40px;width:auto}
+.creator-logo-wrap img{height:27px;width:auto}
 .creator-logo-show-dark{display:none}
 body.dark-mode .creator-logo-show-light{display:none}
 body.dark-mode .creator-logo-show-dark{display:block}
