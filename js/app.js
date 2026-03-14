@@ -573,23 +573,23 @@ function renderSettings(){
   const logboekHTML=`<div style="padding-top:6px">
     <div class="settings-row" onclick="openLogboekBeheer()"><div class="settings-row-left"><div class="settings-row-icon">📋</div><div class="settings-row-text">Beheer logboek</div></div><div class="settings-row-chevron">›</div></div>
   </div>`;
-  const infoHTML=`<div style="padding-top:6px;display:flex;flex-direction:column;gap:4px">
-    ${subHTML('install','App installeren',`
-      <div class="settings-row sub-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone - tik Delen - "Zet op beginscherm"</div></div></div>
-      <div class="settings-row sub-row"><div class="settings-row-left"><div class="settings-row-icon">🤖</div><div class="settings-row-text">Android - tik op menu - "Toevoegen aan beginscherm"</div></div></div>
-    `)}
-    ${subHTML('connect','Verbinding',`
-      <div class="settings-row sub-row" id="syncStatusRow"><div class="settings-row-left"><div class="settings-row-icon"><span class="sync-dot ${_syncColor}" id="syncDotSettings" style="width:10px;height:10px;display:inline-block"></span></div><div class="settings-row-text" id="syncTextSettings">${_syncLabel}</div></div></div>
-    `)}
-    ${subHTML('about','Over',`
-      <div class="settings-row sub-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
-    `)}
-    ${subHTML('data','Data (alleen voor Maarten)',`
-      <div class="settings-row sub-row" onclick="exportData()"><div class="settings-row-left"><div class="settings-row-icon">💾</div><div class="settings-row-text">Export backup (JSON)</div></div><div class="settings-row-chevron">›</div></div>
-      <div class="settings-row sub-row" onclick="doClearHistory()"><div class="settings-row-left"><div class="settings-row-icon">🗑️</div><div class="settings-row-text">Geschiedenis wissen</div></div><div class="settings-row-chevron">›</div></div>
-      <div class="settings-row sub-row" onclick="resetCfg()"><div class="settings-row-left"><div class="settings-row-icon">🔥</div><div class="settings-row-text">Firebase config wijzigen</div></div><div class="settings-row-chevron">›</div></div>
-    `)}
-  </div>`;
+  const infoHTML='<div style="padding-top:6px;display:flex;flex-direction:column;gap:4px">'+
+    subHTML('install','App installeren',
+      '<div class="settings-row sub-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone - tik Delen - &quot;Zet op beginscherm&quot;</div></div></div>'+
+      '<div class="settings-row sub-row"><div class="settings-row-left"><div class="settings-row-icon">🤖</div><div class="settings-row-text">Android - tik op menu - &quot;Toevoegen aan beginscherm&quot;</div></div></div>'
+    )+
+    subHTML('connect','Verbinding',
+      '<div class="settings-row sub-row" id="syncStatusRow"><div class="settings-row-left"><div class="settings-row-icon"><span class="sync-dot '+_syncColor+'" id="syncDotSettings" style="width:10px;height:10px;display:inline-block"></span></div><div class="settings-row-text" id="syncTextSettings">'+_syncLabel+'</div></div></div>'
+    )+
+    subHTML('about','Over',
+      '<div class="settings-row sub-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>'
+    )+
+    subHTML('data','Data (alleen voor Maarten)',
+      '<div class="settings-row sub-row" onclick="exportData()"><div class="settings-row-left"><div class="settings-row-icon">💾</div><div class="settings-row-text">Export backup (JSON)</div></div><div class="settings-row-chevron">›</div></div>'+
+      '<div class="settings-row sub-row" onclick="doClearHistory()"><div class="settings-row-left"><div class="settings-row-icon">🗑️</div><div class="settings-row-text">Geschiedenis wissen</div></div><div class="settings-row-chevron">›</div></div>'+
+      '<div class="settings-row sub-row" onclick="resetCfg()"><div class="settings-row-left"><div class="settings-row-icon">🔥</div><div class="settings-row-text">Firebase config wijzigen</div></div><div class="settings-row-chevron">›</div></div>'
+    )+
+  '</div>';
 
   document.getElementById('settingsList').innerHTML=
     secHTML('cats','Categorieen',catsHTML)+
