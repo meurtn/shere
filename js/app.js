@@ -111,6 +111,11 @@ const VIEW_ORDER={tools:0,members:1,history:2,settings:3};
 let _currentView='tools';
 let _animating=false;
 
+function updateDonateVisibility(view){
+  const btn=document.querySelector('.donate-btn');
+  if(btn)btn.style.display=view==='settings'?'inline-flex':'none';
+}
+
 window.switchView=function(name,el){
   if(name===_currentView||_animating)return;
 
@@ -161,6 +166,7 @@ window.switchView=function(name,el){
   if(el)el.classList.add('active');
 
   _currentView=name;
+  updateDonateVisibility(name);
 };
 
 // TOOLS
