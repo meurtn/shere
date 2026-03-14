@@ -557,10 +557,35 @@ function renderSettings(){
     <div style="margin-top:9px"><button class="btn btn-ghost" onclick="openAddMemberSheet()">+ Familielid toevoegen</button></div>
   </div>`;
 
-  // Info sectie (App installeren + Verbinding + Over + Data)
-  const logboekHTML=`<div style="padding-top:6px">
-    <div class="settings-row" onclick="openLogboekBeheer()"><div class="settings-row-left"><div class="settings-row-icon">📋</div><div class="settings-row-text">Beheer logboek</div></div><div class="settings-row-chevron">›</div></div>
+  // Data sectie
+  const dataHTML=`<div style="padding-top:6px">
+    <div class="settings-row" onclick="exportData()"><div class="settings-row-left"><div class="settings-row-icon">💾</div><div class="settings-row-text">Export backup (JSON)</div></div><div class="settings-row-chevron">›</div></div>
+    <div class="settings-row" onclick="doClearHistory()"><div class="settings-row-left"><div class="settings-row-icon">🗑️</div><div class="settings-row-text">Geschiedenis wissen</div></div><div class="settings-row-chevron">›</div></div>
+    <div class="settings-row" onclick="resetCfg()"><div class="settings-row-left"><div class="settings-row-icon">🔥</div><div class="settings-row-text">Firebase config wijzigen</div></div><div class="settings-row-chevron">›</div></div>
   </div>`;
+
+  // App installeren sectie
+  const installHTML=`<div style="padding-top:6px">
+    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone - tik Delen - "Zet op beginscherm"</div></div></div>
+    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🤖</div><div class="settings-row-text">Android - tik op menu - "Toevoegen aan beginscherm"</div></div></div>
+  </div>`;
+
+  // Verbinding sectie
+  const connHTML=`<div style="padding-top:6px">
+    <div class="settings-row" id="syncStatusRow">
+      <div class="settings-row-left">
+        <div class="settings-row-icon"><span class="sync-dot ${_syncColor}" id="syncDotSettings" style="width:10px;height:10px;display:inline-block"></span></div>
+        <div class="settings-row-text" id="syncTextSettings">${_syncLabel}</div>
+      </div>
+    </div>
+  </div>`;
+
+  // Over sectie
+  const aboutHTML=`<div style="padding-top:6px">
+    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
+  </div>`;
+
+  // Info sectie (App installeren + Verbinding + Over + Data)
   const infoHTML=`<div style="padding-top:6px">
     <div class="settings-row-label">App installeren</div>
     <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone - tik Delen - "Zet op beginscherm"</div></div></div>
