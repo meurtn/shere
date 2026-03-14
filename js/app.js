@@ -585,19 +585,31 @@ function renderSettings(){
     <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
   </div>`;
 
-  // Logboek sectie
-  const logboekHTML=`<div style="padding-top:6px">
-    <div class="settings-row" onclick="openLogboekBeheer()"><div class="settings-row-left"><div class="settings-row-icon">📋</div><div class="settings-row-text">Beheer logboek</div></div><div class="settings-row-chevron">›</div></div>
+  // Info sectie (App installeren + Verbinding + Over + Data)
+  const infoHTML=`<div style="padding-top:6px">
+    <div class="settings-row-label">App installeren</div>
+    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone - tik Delen - "Zet op beginscherm"</div></div></div>
+    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🤖</div><div class="settings-row-text">Android - tik op menu - "Toevoegen aan beginscherm"</div></div></div>
+    <div class="settings-row-label" style="margin-top:10px">Verbinding</div>
+    <div class="settings-row" id="syncStatusRow">
+      <div class="settings-row-left">
+        <div class="settings-row-icon"><span class="sync-dot ${_syncColor}" id="syncDotSettings" style="width:10px;height:10px;display:inline-block"></span></div>
+        <div class="settings-row-text" id="syncTextSettings">${_syncLabel}</div>
+      </div>
+    </div>
+    <div class="settings-row-label" style="margin-top:10px">Over</div>
+    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
+    <div class="settings-row-label" style="margin-top:10px">Data (alleen voor Maarten)</div>
+    <div class="settings-row" onclick="exportData()"><div class="settings-row-left"><div class="settings-row-icon">💾</div><div class="settings-row-text">Export backup (JSON)</div></div><div class="settings-row-chevron">›</div></div>
+    <div class="settings-row" onclick="doClearHistory()"><div class="settings-row-left"><div class="settings-row-icon">🗑️</div><div class="settings-row-text">Geschiedenis wissen</div></div><div class="settings-row-chevron">›</div></div>
+    <div class="settings-row" onclick="resetCfg()"><div class="settings-row-left"><div class="settings-row-icon">🔥</div><div class="settings-row-text">Firebase config wijzigen</div></div><div class="settings-row-chevron">›</div></div>
   </div>`;
 
   document.getElementById('settingsList').innerHTML=
     secHTML('cats','Categorieen',catsHTML)+
     secHTML('familie','Familie',membersHTML)+
     secHTML('logboek','Logboek',logboekHTML)+
-    secHTML('data','Data (alleen voor Maarten)',dataHTML)+
-    secHTML('install','App installeren',installHTML)+
-    secHTML('connect','Verbinding',connHTML)+
-    secHTML('about','Over',aboutHTML)+
+    secHTML('info','Info',infoHTML)+
     `<div class="creator-logo-wrap">
       <img src="icons/creator_logo_white.png" class="creator-logo-show-light" alt="">
       <img src="icons/creator_logo_black.png" class="creator-logo-show-dark" alt="">
@@ -605,7 +617,7 @@ function renderSettings(){
     <div class="donate-wrap">
       <a href="https://ko-fi.com/redhaus/tip" target="_blank" class="donate-btn">
         <img src="icons/kofi-small.webp" class="donate-icon" alt="">
-        <span>Donate if you like this app!</span>
+        <span>Geniet je van de app?<br>Klik hier voor een kleine donatie.</span>
       </a>
     </div>`;
 
