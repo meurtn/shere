@@ -601,6 +601,12 @@ function renderSettings(){
     `<div class="creator-logo-wrap">
       <img src="icons/creator_logo_white.png" class="creator-logo-show-light" alt="">
       <img src="icons/creator_logo_black.png" class="creator-logo-show-dark" alt="">
+    </div>
+    <div class="donate-wrap">
+      <a href="https://ko-fi.com/redhaus/tip" target="_blank" class="donate-btn">
+        <img src="icons/kofi-small.webp" class="donate-icon" alt="">
+        <span>Donate if you like this app!</span>
+      </a>
     </div>`;
 
   // herstel open sectie na re-render
