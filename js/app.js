@@ -111,11 +111,6 @@ const VIEW_ORDER={tools:0,members:1,history:2,settings:3};
 let _currentView='tools';
 let _animating=false;
 
-function updateDonateVisibility(view){
-  const btn=document.querySelector('.donate-btn');
-  if(btn)btn.style.display=view==='settings'?'inline-flex':'none';
-}
-
 window.switchView=function(name,el){
   if(name===_currentView||_animating)return;
 
@@ -166,7 +161,6 @@ window.switchView=function(name,el){
   if(el)el.classList.add('active');
 
   _currentView=name;
-  updateDonateVisibility(name);
 };
 
 // TOOLS
@@ -594,6 +588,15 @@ function renderSettings(){
       '<div class="settings-row sub-row" onclick="exportData()"><div class="settings-row-left"><div class="settings-row-icon">💾</div><div class="settings-row-text">Export backup (JSON)</div></div><div class="settings-row-chevron">›</div></div>'+
       '<div class="settings-row sub-row" onclick="doClearHistory()"><div class="settings-row-left"><div class="settings-row-icon">🗑️</div><div class="settings-row-text">Geschiedenis wissen</div></div><div class="settings-row-chevron">›</div></div>'+
       '<div class="settings-row sub-row" onclick="resetCfg()"><div class="settings-row-left"><div class="settings-row-icon">🔥</div><div class="settings-row-text">Firebase config wijzigen</div></div><div class="settings-row-chevron">›</div></div>'
+    )+
+    subHTML('donatie','Donatie',
+      '<a href="https://ko-fi.com/redhaus/tip" target="_blank" class="settings-row sub-row donate-sub-row">'+
+        '<div class="settings-row-left">'+
+          '<img src="icons/kofi-small.webp" style="width:20px;height:20px;object-fit:contain;flex-shrink:0;margin-right:2px" alt="">'+
+          '<div class="settings-row-text">Geniet je van de app? Tik voor een donatie.</div>'+
+        '</div>'+
+        '<div class="settings-row-chevron">›</div>'+
+      '</a>'
     )+
   '</div>';
 

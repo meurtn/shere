@@ -531,9 +531,8 @@ body.dark-mode .creator-logo-show-dark{display:block}
 body.dark-mode .header-logo-light{display:none}
 body.dark-mode .header-logo-dark{display:block}
 
-/* Donate knop - vast rechtsonder */
-.donate-wrap{display:block;padding:0}
-.donate-btn{position:fixed;bottom:110px;right:16px;display:none;align-items:center;gap:8px;padding:9px 14px;background:var(--bg2);border:1.5px solid var(--border-card);border-radius:100px;text-decoration:none;color:var(--text2);font-family:'Nunito Sans',sans-serif;font-size:12px;font-weight:600;transition:all .18s;box-shadow:var(--shadow-md);z-index:15}
+/* Donate knop - verwijderd, nu als accordion sectie */
+.donate-wrap{display:none}
 .donate-btn:active{transform:scale(.96);box-shadow:none}
 .donate-icon{width:20px;height:20px;object-fit:contain;flex-shrink:0}
 
@@ -546,3 +545,7 @@ body.dark-mode .header-logo-dark{display:block}
 /* Settings rows binnen sub-accordion */
 .settings-row.sub-row{border-radius:0;border-top:none;box-shadow:none;border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
 .sub-collapsible-body .sub-row:last-child{border-radius:0 0 var(--radius-sm) var(--radius-sm)}
+
+/* Donate als settings-row link */
+a.donate-sub-row{display:flex;text-decoration:none;color:var(--text)}
+a.donate-sub-row .settings-row-text{color:var(--text2)}
