@@ -509,6 +509,16 @@ window.toggleSection=function(id){
   }
 };
 
+window.toggleSubSection=function(id){
+  const sec=document.getElementById('subsec-'+id);
+  const body=document.getElementById('subbody-'+id);
+  const arrow=document.getElementById('subarrow-'+id);
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  arrow.classList.toggle('open',!isOpen);
+  sec.classList.toggle('sec-open',!isOpen);
+};
+
 function secHTML(id,title,bodyContent){
   return`<div class="settings-section" id="sec-${id}">
     <div class="collapsible-header" onclick="toggleSection('${id}')">
@@ -520,6 +530,8 @@ function secHTML(id,title,bodyContent){
     </div>
   </div>`;
 }
+
+const subHTML=(id,title,body)=>`<div class="sub-section" id="subsec-${id}"><div class="sub-collapsible-header" onclick="toggleSubSection('${id}')"><div class="sub-section-title">${title}</div><span class="sub-collapsible-arrow" id="subarrow-${id}">›</span></div><div class="sub-collapsible-body" id="subbody-${id}">${body}</div></div>`;
 
 function renderSettings(){
   // Categorieeen sectie - gesorteerd op order, met pijltjes voor herordenen
@@ -557,52 +569,26 @@ function renderSettings(){
     <div style="margin-top:9px"><button class="btn btn-ghost" onclick="openAddMemberSheet()">+ Familielid toevoegen</button></div>
   </div>`;
 
-  // Data sectie
-  const dataHTML=`<div style="padding-top:6px">
-    <div class="settings-row" onclick="exportData()"><div class="settings-row-left"><div class="settings-row-icon">💾</div><div class="settings-row-text">Export backup (JSON)</div></div><div class="settings-row-chevron">›</div></div>
-    <div class="settings-row" onclick="doClearHistory()"><div class="settings-row-left"><div class="settings-row-icon">🗑️</div><div class="settings-row-text">Geschiedenis wissen</div></div><div class="settings-row-chevron">›</div></div>
-    <div class="settings-row" onclick="resetCfg()"><div class="settings-row-left"><div class="settings-row-icon">🔥</div><div class="settings-row-text">Firebase config wijzigen</div></div><div class="settings-row-chevron">›</div></div>
+  // Info sectie met sub-accordeons
+  const logboekHTML=`<div style="padding-top:6px">
+    <div class="settings-row" onclick="openLogboekBeheer()"><div class="settings-row-left"><div class="settings-row-icon">📋</div><div class="settings-row-text">Beheer logboek</div></div><div class="settings-row-chevron">›</div></div>
   </div>`;
-
-  // App installeren sectie
-  const installHTML=`<div style="padding-top:6px">
-    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone - tik Delen - "Zet op beginscherm"</div></div></div>
-    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🤖</div><div class="settings-row-text">Android - tik op menu - "Toevoegen aan beginscherm"</div></div></div>
-  </div>`;
-
-  // Verbinding sectie
-  const connHTML=`<div style="padding-top:6px">
-    <div class="settings-row" id="syncStatusRow">
-      <div class="settings-row-left">
-        <div class="settings-row-icon"><span class="sync-dot ${_syncColor}" id="syncDotSettings" style="width:10px;height:10px;display:inline-block"></span></div>
-        <div class="settings-row-text" id="syncTextSettings">${_syncLabel}</div>
-      </div>
-    </div>
-  </div>`;
-
-  // Over sectie
-  const aboutHTML=`<div style="padding-top:6px">
-    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
-  </div>`;
-
-  // Info sectie (App installeren + Verbinding + Over + Data)
-  const infoHTML=`<div style="padding-top:6px">
-    <div class="settings-row-label">App installeren</div>
-    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone - tik Delen - "Zet op beginscherm"</div></div></div>
-    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🤖</div><div class="settings-row-text">Android - tik op menu - "Toevoegen aan beginscherm"</div></div></div>
-    <div class="settings-row-label" style="margin-top:10px">Verbinding</div>
-    <div class="settings-row" id="syncStatusRow">
-      <div class="settings-row-left">
-        <div class="settings-row-icon"><span class="sync-dot ${_syncColor}" id="syncDotSettings" style="width:10px;height:10px;display:inline-block"></span></div>
-        <div class="settings-row-text" id="syncTextSettings">${_syncLabel}</div>
-      </div>
-    </div>
-    <div class="settings-row-label" style="margin-top:10px">Over</div>
-    <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
-    <div class="settings-row-label" style="margin-top:10px">Data (alleen voor Maarten)</div>
-    <div class="settings-row" onclick="exportData()"><div class="settings-row-left"><div class="settings-row-icon">💾</div><div class="settings-row-text">Export backup (JSON)</div></div><div class="settings-row-chevron">›</div></div>
-    <div class="settings-row" onclick="doClearHistory()"><div class="settings-row-left"><div class="settings-row-icon">🗑️</div><div class="settings-row-text">Geschiedenis wissen</div></div><div class="settings-row-chevron">›</div></div>
-    <div class="settings-row" onclick="resetCfg()"><div class="settings-row-left"><div class="settings-row-icon">🔥</div><div class="settings-row-text">Firebase config wijzigen</div></div><div class="settings-row-chevron">›</div></div>
+  const infoHTML=`<div style="padding-top:6px;display:flex;flex-direction:column;gap:4px">
+    ${subHTML('install','App installeren',`
+      <div class="settings-row sub-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone - tik Delen - "Zet op beginscherm"</div></div></div>
+      <div class="settings-row sub-row"><div class="settings-row-left"><div class="settings-row-icon">🤖</div><div class="settings-row-text">Android - tik op menu - "Toevoegen aan beginscherm"</div></div></div>
+    `)}
+    ${subHTML('connect','Verbinding',`
+      <div class="settings-row sub-row" id="syncStatusRow"><div class="settings-row-left"><div class="settings-row-icon"><span class="sync-dot ${_syncColor}" id="syncDotSettings" style="width:10px;height:10px;display:inline-block"></span></div><div class="settings-row-text" id="syncTextSettings">${_syncLabel}</div></div></div>
+    `)}
+    ${subHTML('about','Over',`
+      <div class="settings-row sub-row"><div class="settings-row-left"><div class="settings-row-icon">ℹ️</div><div class="settings-row-text">shere v1.0 - Saarloosjes</div></div></div>
+    `)}
+    ${subHTML('data','Data (alleen voor Maarten)',`
+      <div class="settings-row sub-row" onclick="exportData()"><div class="settings-row-left"><div class="settings-row-icon">💾</div><div class="settings-row-text">Export backup (JSON)</div></div><div class="settings-row-chevron">›</div></div>
+      <div class="settings-row sub-row" onclick="doClearHistory()"><div class="settings-row-left"><div class="settings-row-icon">🗑️</div><div class="settings-row-text">Geschiedenis wissen</div></div><div class="settings-row-chevron">›</div></div>
+      <div class="settings-row sub-row" onclick="resetCfg()"><div class="settings-row-left"><div class="settings-row-icon">🔥</div><div class="settings-row-text">Firebase config wijzigen</div></div><div class="settings-row-chevron">›</div></div>
+    `)}
   </div>`;
 
   document.getElementById('settingsList').innerHTML=
@@ -617,7 +603,7 @@ function renderSettings(){
     <div class="donate-wrap">
       <a href="https://ko-fi.com/redhaus/tip" target="_blank" class="donate-btn">
         <img src="icons/kofi-small.webp" class="donate-icon" alt="">
-        <span>Geniet je van de app?<br>Klik hier voor een kleine donatie.</span>
+        <span>Geniet je van de app?<br>Tik voor een donatie.</span>
       </a>
     </div>`;
 
