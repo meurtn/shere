@@ -558,6 +558,9 @@ function renderSettings(){
   </div>`;
 
   // Info sectie (App installeren + Verbinding + Over + Data)
+  const logboekHTML=`<div style="padding-top:6px">
+    <div class="settings-row" onclick="openLogboekBeheer()"><div class="settings-row-left"><div class="settings-row-icon">📋</div><div class="settings-row-text">Beheer logboek</div></div><div class="settings-row-chevron">›</div></div>
+  </div>`;
   const infoHTML=`<div style="padding-top:6px">
     <div class="settings-row-label">App installeren</div>
     <div class="settings-row"><div class="settings-row-left"><div class="settings-row-icon">🍎</div><div class="settings-row-text">iPhone - tik Delen - "Zet op beginscherm"</div></div></div>
