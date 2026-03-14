@@ -363,6 +363,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito
 .collapsible-body.open{display:block}
 .settings-section.sec-open .collapsible-header{border-radius:var(--radius-sm) var(--radius-sm) 0 0}
 
+/* Sub-accordion binnen INFO */
+.sub-section{margin-bottom:4px}
+.sub-collapsible-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);user-select:none;transition:background .15s,border-radius .01s}
+.sub-collapsible-header:active{background:var(--bg4)}
+.sub-section-title{font-family:'Nunito Sans',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text3)}
+.sub-collapsible-arrow{color:var(--text3);font-size:12px;transition:transform .22s;font-weight:700}
+.sub-collapsible-arrow.open{transform:rotate(90deg)}
+.sub-collapsible-body{display:none;padding:2px 0 2px}
+.sub-collapsible-body.open{display:block}
+.sub-section.sec-open .sub-collapsible-header{border-radius:var(--radius-sm) var(--radius-sm) 0 0}
+
 /* VIEWS */
 #app{position:relative}
 .view{display:none;flex-direction:column;height:100%;overflow:hidden}
@@ -531,3 +542,7 @@ body.dark-mode .header-logo-dark{display:block}
 
 /* Donate tekst 2 regels */
 .donate-btn span{text-align:center;line-height:1.45}
+
+/* Settings rows binnen sub-accordion */
+.settings-row.sub-row{border-radius:0;border-top:none;box-shadow:none;border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.sub-collapsible-body .sub-row:last-child{border-radius:0 0 var(--radius-sm) var(--radius-sm)}
