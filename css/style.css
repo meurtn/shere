@@ -532,7 +532,7 @@ body.dark-mode .header-logo-light{display:none}
 body.dark-mode .header-logo-dark{display:block}
 
 /* Donate knop */
-.donate-wrap{display:flex;justify-content:center;padding:0 0 24px}
+.donate-wrap{display:flex;justify-content:flex-end;padding:0 0 24px}
 .donate-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--bg2);border:1.5px solid var(--border-card);border-radius:100px;text-decoration:none;color:var(--text2);font-family:'Nunito Sans',sans-serif;font-size:13px;font-weight:600;transition:all .18s;box-shadow:var(--shadow)}
 .donate-btn:active{transform:scale(.96);box-shadow:none}
 .donate-icon{width:20px;height:20px;object-fit:contain;flex-shrink:0}
