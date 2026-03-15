@@ -510,13 +510,20 @@ window.toggleSection=function(id){
 };
 
 window.toggleSubSection=function(id){
-  const sec=document.getElementById('subsec-'+id);
-  const body=document.getElementById('subbody-'+id);
-  const arrow=document.getElementById('subarrow-'+id);
-  const isOpen=body.classList.contains('open');
-  body.classList.toggle('open',!isOpen);
-  arrow.classList.toggle('open',!isOpen);
-  sec.classList.toggle('sec-open',!isOpen);
+  const allIds=['install','connect','about','data','donatie'];
+  const isOpen=document.getElementById('subbody-'+id)?.classList.contains('open');
+  // sluit alle sub-secties
+  allIds.forEach(i=>{
+    document.getElementById('subbody-'+i)?.classList.remove('open');
+    document.getElementById('subarrow-'+i)?.classList.remove('open');
+    document.getElementById('subsec-'+i)?.classList.remove('sec-open');
+  });
+  // open de geklikte als die nog dicht was
+  if(!isOpen){
+    document.getElementById('subbody-'+id)?.classList.add('open');
+    document.getElementById('subarrow-'+id)?.classList.add('open');
+    document.getElementById('subsec-'+id)?.classList.add('sec-open');
+  }
 };
 
 function secHTML(id,title,bodyContent){
