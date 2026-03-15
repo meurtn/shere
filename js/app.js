@@ -754,7 +754,19 @@ window.pickEmojiFromModal=function(e){
 };
 
 // ZOEKFUNCTIE
-window.onSearchInput=function(){renderTools();};
+window.onSearchInput=function(){
+  const val=document.getElementById('searchInput').value;
+  const clr=document.getElementById('searchClear');
+  if(clr)clr.style.display=val?'flex':'none';
+  renderTools();
+};
+window.clearSearch=function(){
+  document.getElementById('searchInput').value='';
+  const clr=document.getElementById('searchClear');
+  if(clr)clr.style.display='none';
+  renderTools();
+  document.getElementById('searchInput').focus();
+};
 
 // LIGHTBOX
 window.openLightbox=function(src){
