@@ -43,7 +43,6 @@ function applyDark(on) {
   if(btn)btn.textContent=on?'☀️':'🌙';
   const cs=document.getElementById('metaColorScheme');
   if(cs)cs.content=on?'only dark':'only light';
-}  document.getElementById('themeColor').content=on?'#0d1021':'#f0f2f8';
 }
 window.toggleDarkMode=function(){const on=!document.body.classList.contains('dark-mode');localStorage.setItem(DARK_KEY,on?'1':'0');applyDark(on);};
 applyDark(localStorage.getItem(DARK_KEY)==='1');
