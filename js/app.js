@@ -39,7 +39,8 @@ let _emojiTarget='tool', _emojiCatIdx=0;
 // DARK MODE
 function applyDark(on) {
   document.body.classList.toggle('dark-mode',on);
-  document.getElementById('darkToggleBtn').textContent=on?'☀️':'🌙';
+  const btn=document.getElementById('darkToggleBtn');
+  if(btn)btn.textContent=on?'☀️':'🌙';
   const cs=document.getElementById('metaColorScheme');
   if(cs)cs.content=on?'only dark':'only light';
 }  document.getElementById('themeColor').content=on?'#0d1021':'#f0f2f8';
