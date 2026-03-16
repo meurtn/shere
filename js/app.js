@@ -617,12 +617,6 @@ function renderSettings(){
     `<div class="creator-logo-wrap">
       <img src="icons/creator_logo_white.png" class="creator-logo-show-light" alt="">
       <img src="icons/creator_logo_black.png" class="creator-logo-show-dark" alt="">
-    </div>
-    <div class="donate-wrap">
-      <a href="https://ko-fi.com/redhaus/tip" target="_blank" class="donate-btn">
-        <img src="icons/kofi-small.webp" class="donate-icon" alt="">
-        <span>Geniet je van de app?<br>Tik voor een donatie.</span>
-      </a>
     </div>`;
 
   // herstel open sectie na re-render
@@ -726,8 +720,7 @@ window.closeEmojiPicker=function(){
   document.getElementById('emojiModal').classList.remove('open');
 };
 function renderEmojiPickerModal(){
-  const cats=EMOJI_CATS;
-  document.getElementById('emojiPickerCats').innerHTML=cats.map((c,i)=>
+  document.getElementById('emojiPickerCats').innerHTML=EMOJI_CATS.map((c,i)=>
     `<button class="emoji-cat-btn ${i===_emojiCatIdx?'active':''}" onclick="switchEmojiCat(${i})" title="${c.name}">${c.icon}</button>`
   ).join('');
   renderEmojiGrid();
@@ -784,7 +777,7 @@ window.closeLightbox=function(){
 let _cropState={isTool:true,previewId:null,iconId:null};
 let _cropSrc='';
 let _crop={x:0,y:0,scale:1,vw:0,vh:0,iw:0,ih:0};
-let _cropTouch={startDist:0,startScale:1,lastX:0,lastY:0,touching:false};
+let _cropTouch={startDist:0,startScale:1,lastX:0,lastY:0};
 
 function loadPhotoFile(file,previewId,iconId,isTool){
   if(!file)return;

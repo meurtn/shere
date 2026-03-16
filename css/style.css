@@ -531,16 +531,9 @@ body.dark-mode .creator-logo-show-dark{display:block}
 body.dark-mode .header-logo-light{display:none}
 body.dark-mode .header-logo-dark{display:block}
 
-/* Donate knop - verwijderd, nu als accordion sectie */
-.donate-wrap{display:none}
-.donate-btn:active{transform:scale(.96);box-shadow:none}
-.donate-icon{width:20px;height:20px;object-fit:contain;flex-shrink:0}
+/* Donate knop - nu als sub-accordion rij in INFO */
 
-/* Sub-label binnen accordion (App installeren, Verbinding etc) */
-.settings-row-label{font-family:'Nunito Sans',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text3);padding:2px 2px 5px;margin-bottom:2px}
 
-/* Donate tekst 2 regels */
-.donate-btn span{text-align:center;line-height:1.45}
 
 /* Settings rows binnen sub-accordion */
 .settings-row.sub-row{border-radius:0;border-top:none;box-shadow:none;border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
